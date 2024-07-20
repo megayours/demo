@@ -6,21 +6,28 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "start:network": "docker network create mega_chain_network",
+    "start:postgres": "docker run -e POSTGRES_DB=postchain -e POSTGRES_USER=postchain -e POSTGRES_PASSWORD=postchain --network mega_chain_network -p 5432:5432 -d --name mega_chain_postgres postgres:14.1-alpine",
+    "start:demo": "npm run prestart:demo && node scripts/start.js dev",
+    "stop": "docker rm -f -v mega_chain_blockchain mega_chain_postgres || true && docker network rm mega_chain_network || true",
+    "prestart:demo": "npm run stop && npm run start:network && npm run start:postgres"
   },
   "dependencies": {
+    "@chromia/ft4": "^0.8.0",
+    "next": "14.2.4",
     "react": "^18",
-    "react-dom": "^18",
-    "next": "14.2.4"
+    "react-dom": "^18"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "dotenv": "^16.4.5",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.4",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.4"
+    "typescript": "^5"
   }
 }

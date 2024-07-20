@@ -1,0 +1,29 @@
+@extend(auth.auth_handler)
+function () = auth.add_auth_handler(
+  flags = []
+);
+
+operation import_token(metadata: yours.token_metadata, token_id: integer) {
+  val account = auth.authenticate();
+
+  val token = yours.create_token_with_id(
+    yours.token_specification(
+      project = metadata.yours.project,
+      collection = metadata.yours.collection,
+      name = metadata.name,
+      modules = []
+    ),
+    token_id
+  );
+
+  create tracker.tracker(token, op_context.last_block_time);
+
+  create yours.imported_attributes(token, json = metadata.attributes.to_gtv().to_json());
+
+  yours.attach_module(token, "tracker");
+  yours.attach_image(token, metadata.image);
+  yours.attach_description(token, metadata.description);
+  yours.attach_animation(token, metadata.animation_url);
+
+  yours.mint_tokens(token, yours.balance_specification(account, amount = 1));
+}
