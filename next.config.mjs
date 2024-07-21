@@ -8,6 +8,12 @@ const nextConfig = {
         port: '',
         pathname: '/ipfs/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'api.pudgypenguins.io',
+        port: '',
+        pathname: '/present/**',
+      }
     ],
   },
 };

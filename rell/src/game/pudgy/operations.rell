@@ -1,0 +1,17 @@
+operation equip_fishing_rod(pudgy_penguin_id: integer, fishing_rod_id: integer) {
+  val pudgy_penguin = pudgy_penguin @ { .token.id == pudgy_penguin_id };
+  val fishing_rod = fishing_rod @ { .token.id == fishing_rod_id };
+  create equipped_fishing_rod(pudgy_penguin, fishing_rod);
+}
+
+operation unequip_fishing_rod(pudgy_penguin_id: integer) {
+  delete equipped_fishing_rod @ { .pudgy_penguin.token.id == pudgy_penguin_id };
+}
+
+operation pull_fish(pudgy_penguin_id: integer) {
+  val pudgy_penguin = pudgy_penguin @ { .token.id == pudgy_penguin_id };
+  pudgy_penguin.fishes_caught += 1;
+
+  val fishing_rod = equipped_fishing_rod @ { .pudgy_penguin.token.id == pudgy_penguin_id } ( .fishing_rod );
+  fishing_rod.durability -= 1;
+}

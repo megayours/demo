@@ -21,7 +21,7 @@ libs:
     registry: git@github.com:megayours/yours-core.git
     path: src/lib/yours
     tagOrBranch: main
-    rid: x"0497FF9F05BFD96DEB95D634759D0ED2B44254FD71E2E3A4F4A1355E1632882D"
+    rid: x"19583370E5C31C865940DC4BE9F702AF275E6730A6943EFC831AB1B406111A07"
     insecure: false
 
 compile:

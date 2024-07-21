@@ -1,3 +1,5 @@
+import Image from 'next/image';
+import React from 'react';
 import Link from "next/link";
 
 const Sidebar = ({
@@ -8,48 +10,46 @@ const Sidebar = ({
   toggle: () => void;
 }): JSX.Element => {
   return (
-    <>
-      <div
-        className="sidebar-container fixed w-full h-full overflow-hidden justify-center bg-white grid pt-[120px] left-0 z-10"
-        style={{
-          opacity: `${isOpen ? "1" : "0"}`,
-          top: ` ${isOpen ? "0" : "-100%"}`,
-        }}
-      >
-        <button className="absolute right-0 p-5" onClick={toggle}>
-          {/* Close icon */}
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="48"
-            height="48"
-            viewBox="0 0 24 24"
-          >
-            <path
-              fill="currentColor"
-              d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"
-            />
-          </svg>
-        </button>
+    <div
+      className={`fixed w-full h-full overflow-hidden justify-center bg-[var(--color-surface)] grid pt-[120px] left-0 z-50 transition-all duration-300 ${
+        isOpen ? "top-0 opacity-100" : "-top-full opacity-0"
+      }`}
+    >
+      <button className="absolute right-0 p-5 text-white" onClick={toggle}>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
 
-        <ul className="sidebar-nav text-center leading-relaxed text-xl">
-          <li>
-            <Link href="/inventory" onClick={toggle}>
-              <p>Inventory</p>
-            </Link>
-          </li>
-          <li>
-            <Link href="/create-nft" onClick={toggle}>
-              <p>Create NFT</p>
-            </Link>
-          </li>
-          <li>
-            <Link href="/import-modules" onClick={toggle}>
-              <p>Import Module</p>
-            </Link>
-          </li>
-        </ul>
-      </div>
-    </>
+      <ul className="text-center leading-relaxed text-xl">
+        <li className="py-2">
+          <Link href="/" onClick={toggle} className="nav-link">
+            Home
+          </Link>
+        </li>
+        <li className="py-2">
+          <Link href="/inventory" onClick={toggle} className="nav-link">
+            Inventory
+          </Link>
+        </li>
+        <li className="py-2">
+          <Link href="/create-nft" onClick={toggle} className="nav-link">
+            Create NFT
+          </Link>
+        </li>
+      </ul>
+    </div>
   );
 };
 

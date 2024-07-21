@@ -5,6 +5,6 @@
  * @returns The metadata of the token in JSON format in order to handle generic attributes values.
  */
 query metadata(collection: name, token_id: integer): token_metadata? {
-  val token = get_token(collection, token_id);
+  val token = get_active_token(collection, token_id);
   return if (token != null) get_metadata(token) else null;
 }

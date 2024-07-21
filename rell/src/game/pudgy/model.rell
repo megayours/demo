@@ -1,0 +1,14 @@
+entity pudgy_penguin {
+  key yours.token;
+  mutable fishes_caught: integer;
+}
+
+entity fishing_rod {
+  key yours.token;
+  mutable durability: integer;
+}
+
+entity equipped_fishing_rod {
+  key pudgy_penguin;
+  key fishing_rod;
+}

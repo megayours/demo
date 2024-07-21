@@ -1,4 +1,4 @@
-import { NFTMetadata } from "./megaYoursApi";
+import { NFTMetadata } from "@/app/types/nft";
 
 export const ipfsApi = {
   getGatewayUrl: (ipfsUrl: string): string => {
