@@ -20,7 +20,7 @@ export default function RootLayout({
           <Navigation />
           <main className="flex-grow">{children}</main>
           <footer className="bg-[var(--color-background)] text-white text-center py-4">
-            <p>&copy; 2023 Mega Yours. All rights reserved.</p>
+            <p>&copy; 2024 Mega Yours. All rights reserved.</p>
           </footer>
         </ContextProvider>
       </body>

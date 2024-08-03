@@ -7,8 +7,8 @@ type PudgyRod = {
 }
 
 export const fishingGameApi = {
-  getNFT: async (client: IClient, collection: string, tokenId: number): Promise<NFT | undefined> => {
-    const metadata = await client.query<any>("yours.metadata", { collection, token_id: tokenId });
+  getNFT: async (client: IClient, project: string, collection: string, tokenId: number): Promise<NFT | undefined> => {
+    const metadata = await client.query<any>("yours.metadata", { project, collection, token_id: tokenId });
     if (metadata == null) return undefined;
     return {
       token_id: tokenId,

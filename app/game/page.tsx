@@ -15,12 +15,13 @@ export default function Game() {
   useEffect(() => {
     const fetchNFT = async () => {
       const tokenId = searchParams.get('tokenId');
+      const project = searchParams.get('project');
       const collection = searchParams.get('collection');
 
-      if (tokenId && collection) {
+      if (tokenId && collection && project) {
         try {
           const fishingGameClient = await getFishingGameChromiaClient();
-          const fetchedNFT = await fishingGameApi.getNFT(fishingGameClient, collection, parseInt(tokenId));
+          const fetchedNFT = await fishingGameApi.getNFT(fishingGameClient, project, collection, parseInt(tokenId));
           if (fetchedNFT && fetchedNFT.collection === collection) {
             setNFT(fetchedNFT);
           }

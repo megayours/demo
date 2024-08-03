@@ -7,7 +7,7 @@ operation import_token(metadata: yours.token_metadata, token_id: integer) {
   val account = auth.authenticate();
 
   val token = yours.create_token_with_id(
-    yours.token_specification(
+    yours.token_info(
       project = metadata.yours.project,
       collection = metadata.yours.collection,
       name = metadata.name,
@@ -25,5 +25,5 @@ operation import_token(metadata: yours.token_metadata, token_id: integer) {
   yours.attach_description(token, metadata.description);
   yours.attach_animation(token, metadata.animation_url);
 
-  yours.mint_tokens(token, yours.balance_specification(account, amount = 1));
+  yours.mint(token, yours.balance_info(account, amount = 1));
 }

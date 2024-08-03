@@ -18,10 +18,10 @@ libs:
     rid: x"1D567580C717B91D2F188A4D786DB1D41501086B155A68303661D25364314A4D"
     insecure: false
   yours:
-    registry: git@github.com:megayours/yours-core.git
+    registry: git@github.com:megayours/yours-protocol.git
     path: src/lib/yours
     tagOrBranch: main
-    rid: x"19583370E5C31C865940DC4BE9F702AF275E6730A6943EFC831AB1B406111A07"
+    rid: x"A27EE225EC18217A1F702138D531975E0A729217072E47005FBE0B9AF974A985"
     insecure: false
 
 compile:

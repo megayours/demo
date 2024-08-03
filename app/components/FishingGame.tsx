@@ -23,7 +23,7 @@ const FishingGame: React.FC<{ initialNFT: NFT }> = ({ initialNFT }) => {
         const fishingGameClient = await getFishingGameChromiaClient();
         const rods = await fishingGameApi.getPudgyRods(fishingGameClient);
         const rodNFTs = await Promise.all(
-          rods.map(rod => fishingGameApi.getNFT(fishingGameClient, 'Pudgy Rods', rod.id))
+          rods.map(rod => fishingGameApi.getNFT(fishingGameClient, initialNFT.project, 'Pudgy Rods', rod.id))
         );
         const filteredRods = rodNFTs.filter((rod): rod is NFT => rod !== undefined);
         setFishingRods(filteredRods);
@@ -129,14 +129,14 @@ const FishingGame: React.FC<{ initialNFT: NFT }> = ({ initialNFT }) => {
   const refreshNFTMetadata = async () => {
     try {
       const fishingGameClient = await getFishingGameChromiaClient();
-      const updatedNFT = await fishingGameApi.getNFT(fishingGameClient, nft.collection, nft.token_id);
+      const updatedNFT = await fishingGameApi.getNFT(fishingGameClient, nft.project, nft.collection, nft.token_id);
       if (updatedNFT) {
         setNFT(updatedNFT);
       }
 
       // Refresh fishing rod metadata
       const updatedRods = await Promise.all(
-        fishingRods.map(rod => fishingGameApi.getNFT(fishingGameClient, 'Pudgy Rods', rod.token_id))
+        fishingRods.map(rod => fishingGameApi.getNFT(fishingGameClient, nft.project, 'Pudgy Rods', rod.token_id))
       );
       setFishingRods(updatedRods.filter((rod): rod is NFT => rod !== undefined));
     } catch (error) {

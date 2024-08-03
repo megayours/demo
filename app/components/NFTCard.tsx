@@ -3,6 +3,33 @@ import React from 'react';
 import Spinner from './Spinner';
 import { NFTMetadata, NFTAttribute } from '../types/nft';
 
+const getBlockchainGradient = (blockchain: string): string => {
+  switch (blockchain.toLowerCase()) {
+    case 'ethereum':
+      return 'from-blue-500 via-blue-400 to-blue-300';
+    case 'mega chain':
+      return 'from-purple-600 via-purple-500 to-purple-400';
+    case 'fishing game':
+      return 'from-green-500 via-green-400 to-green-300';
+    default:
+      return 'from-gray-500 via-gray-400 to-gray-300';
+  }
+};
+
+const getAttributeColor = (attributeName: string): string => {
+  switch (attributeName.toLowerCase()) {
+    case 'fishes caught':
+    case 'fishing rod':
+    case 'equipped by':
+    case 'durability':
+      return 'bg-green-500';
+    case 'recent mega chain visit':
+      return 'bg-purple-600';
+    default:
+      return 'bg-gray-700';
+  }
+};
+
 interface NFTCardProps {
   imageUrl: string;
   tokenName: string;
@@ -15,7 +42,10 @@ interface NFTCardProps {
 
 const NFTCard: React.FC<NFTCardProps> = ({ imageUrl, tokenName, tokenDescription, metadata, blockchain, isGamePage = false, actions = [] }) => {
   const renderAttribute = (attribute: NFTAttribute, index: number) => (
-    <div key={`${attribute.trait_type}-${index}`} className="bg-gray-700 rounded-lg p-2 text-xs">
+    <div
+      key={`${attribute.trait_type}-${index}`}
+      className={`${getAttributeColor(attribute.trait_type)} rounded-lg p-2 text-xs`}
+    >
       <span className="font-semibold">{attribute.trait_type}:</span> {attribute.value}
     </div>
   );
@@ -39,11 +69,11 @@ const NFTCard: React.FC<NFTCardProps> = ({ imageUrl, tokenName, tokenDescription
       </div>
       <div className="p-4">
         <h2 className="text-xl font-semibold text-white mb-2">{tokenName}</h2>
-        <div className="inline-block bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white text-xs font-semibold px-2 py-1 rounded-full mb-2">
+        <div className={`inline-block bg-gradient-to-r ${getBlockchainGradient(blockchain)} text-white text-xs font-semibold px-2 py-1 rounded-full mb-2`}>
           {blockchain}
         </div>
         <p className="text-gray-300 text-sm line-clamp-3 mb-4">{tokenDescription}</p>
-        
+
         {/* Attributes Section */}
         <div className="mb-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">

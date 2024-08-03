@@ -51,17 +51,18 @@ export async function createSessionForChain(blockchainIid: number): Promise<Sess
   return newSession;
 }
 
-export async function bridgeNFT(session: Session | undefined, collection: string, tokenId: number, targetBlockchainIid: number) {
+export async function bridgeNFT(session: Session | undefined, project: string, collection: string, tokenId: number, targetBlockchainIid: number) {
   if (!session) return;
 
   const targetSession = await createSessionForChain(targetBlockchainIid);
 
-  const metadata = await session.query("yours.metadata", { collection, token_id: tokenId });
+  const metadata = await session.query("yours.metadata", { project, collection, token_id: tokenId });
 
   await session.transactionBuilder()
     .add(op(
       "yours.init_transfer",
       session.account.id,
+      project,
       collection,
       tokenId,
       1,
@@ -87,17 +88,18 @@ export async function bridgeNFT(session: Session | undefined, collection: string
     .buildAndSendWithAnchoring();
 }
 
-export async function bridgeNFTBack(session: Session | undefined, collection: string, tokenId: number, sourceBlockchainIid: number) {
+export async function bridgeNFTBack(session: Session | undefined, project: string, collection: string, tokenId: number, sourceBlockchainIid: number) {
   if (!session) return;
 
   const sourceSession = await createSessionForChain(sourceBlockchainIid);
 
-  const metadata = await sourceSession.query("yours.metadata", { collection, token_id: tokenId });
+  const metadata = await sourceSession.query("yours.metadata", { project, collection, token_id: tokenId });
 
   await sourceSession.transactionBuilder()
     .add(op(
       "yours.init_transfer",
       sourceSession.account.id,
+      project,
       collection,
       tokenId,
       1,

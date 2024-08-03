@@ -39,8 +39,8 @@ function after_apply_transfer(yours.token, modules: set<name>,attributes: map<te
 @extend(yours.before_init_transfer)
 function before_init_transfer(yours.token, ft4.accounts.account) {
   // Unequip if either the pudgy penguin or the fishing rod is being transferred
-  delete equipped_fishing_rod @? { 
+  require(equipped_fishing_rod @? { 
     .pudgy_penguin.token == token or
     .fishing_rod.token == token
-  };
+  } == null, "Cannot transfer an equipped item");
 }

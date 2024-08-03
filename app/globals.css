@@ -48,6 +48,26 @@ body {
   .nav-link:hover {
     @apply text-[var(--color-primary)];
   }
+
+  .modal-content {
+    @apply bg-gradient-to-br from-[var(--color-surface)] to-[var(--color-background)];
+  }
+
+  .modal-button {
+    @apply w-full py-2 px-4 rounded text-white font-bold transition-all duration-300 hover:scale-105 hover:shadow-lg;
+  }
+
+  .modal-button-primary {
+    @apply modal-button bg-gradient-to-r from-blue-500 to-purple-600;
+  }
+
+  .modal-button-secondary {
+    @apply modal-button bg-gradient-to-r from-green-500 to-teal-600;
+  }
+
+  .modal-button-tertiary {
+    @apply modal-button bg-gradient-to-r from-purple-500 to-pink-600;
+  }
 }
 
 @layer utilities {
@@ -55,7 +75,7 @@ body {
     0% {
       transform: rotate(0deg);
     }
-    100% {
+     100% {
       transform: rotate(360deg);
     }
   }
