@@ -1,0 +1,1 @@
+(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[763],{4938:function(n,e,t){Promise.resolve().then(t.bind(t,2444))},2444:function(n,e,t){"use strict";t.r(e);var u=t(7437);e.default=function(){return(0,u.jsx)("h1",{children:"Create NFT"})}}},function(n){n.O(0,[971,23,744],function(){return n(n.s=4938)}),_N_E=n.O()}]);
