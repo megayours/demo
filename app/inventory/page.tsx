@@ -149,7 +149,7 @@ function ImportNFT() {
     if (session) {
       setActionLoading(tokenId, 'bridgeFromFishing', true);
       try {
-        const client = await getMegaYoursChromiaClient();
+        const client = await getFishingGameChromiaClient();
         await bridgeNFTBack(session, project, collection, tokenId, client.config.blockchainRid);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const bridgedBackNFT = await megaYoursApi.getNFT(session, project, collection, tokenId);
@@ -178,25 +178,28 @@ function ImportNFT() {
     setSelectedNFT(null);
   };
 
-  const executeBridge = async (targetChain: string) => {
-    if (!selectedNFT || !session) return;
-
-    const { project, collection, token_id } = selectedNFT;
-    setActionLoading(token_id, 'bridge', true);
+  const executeBridge = async (targetBlockchain: string) => {
+    if (!selectedNFT) return;
+    
+    // Close the modal immediately
+    closeModal();
+    
+    // Set the bridging NFT and start the process
+    setActionLoading(selectedNFT.token_id, 'bridge', true);
 
     try {
-      if (selectedNFT.blockchain === "Ethereum" && targetChain === "Mega Chain") {
-        await importToken(project, collection, token_id, selectedNFT.metadata);
-      } else if (selectedNFT.blockchain === "Mega Chain" && targetChain === "Fishing Game") {
-        await bridgeTokenToFishingGame(project, collection, token_id);
-      } else if (selectedNFT.blockchain === "Fishing Game" && targetChain === "Mega Chain") {
-        await bridgeTokenFromFishingGame(project, collection, token_id);
+      if (selectedNFT.blockchain === "Ethereum" && targetBlockchain === "Mega Chain") {
+        await importToken(selectedNFT.project, selectedNFT.collection, selectedNFT.token_id, selectedNFT.metadata);
+      } else if (selectedNFT.blockchain === "Mega Chain" && targetBlockchain === "Fishing Game") {
+        await bridgeTokenToFishingGame(selectedNFT.project, selectedNFT.collection, selectedNFT.token_id);
+      } else if (selectedNFT.blockchain === "Fishing Game" && targetBlockchain === "Mega Chain") {
+        await bridgeTokenFromFishingGame(selectedNFT.project, selectedNFT.collection, selectedNFT.token_id);
       }
     } catch (error) {
       console.error("Error bridging token:", error);
+      // Handle error (e.g., show error message)
     } finally {
-      setActionLoading(token_id, 'bridge', false);
-      closeModal();
+      setActionLoading(selectedNFT.token_id, 'bridge', false);
     }
   };
 

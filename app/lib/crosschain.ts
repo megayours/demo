@@ -57,7 +57,7 @@ export async function bridgeNFT(session: Session | undefined, project: string, c
   const targetSession = await createSessionForChain(targetBlockchainRid);
 
   const metadata = await session.query("yours.metadata", { project, collection, token_id: tokenId });
-
+  console.log(`Metadata: ${metadata}`);
   await session.transactionBuilder()
     .add(op(
       "yours.init_transfer",
@@ -88,8 +88,8 @@ export async function bridgeNFT(session: Session | undefined, project: string, c
     .buildAndSendWithAnchoring();
 }
 
-export async function bridgeNFTBack(session: Session | undefined, project: string, collection: string, tokenId: number, sourceBlockchainRid: string) {
-  if (!session) return;
+export async function bridgeNFTBack(megaChainSession: Session | undefined, project: string, collection: string, tokenId: number, sourceBlockchainRid: string) {
+  if (!megaChainSession) return;
 
   const sourceSession = await createSessionForChain(sourceBlockchainRid);
 
@@ -107,8 +107,8 @@ export async function bridgeNFTBack(session: Session | undefined, project: strin
     ), {
       onAnchoredHandler: async (data) => {
         if (!data) throw new Error("No data provided");
-        const iccfProofOperation = await data.createProof(session.blockchainRid);
-        await session.transactionBuilder()
+        const iccfProofOperation = await data.createProof(megaChainSession.blockchainRid);
+        await megaChainSession.transactionBuilder()
           .add(iccfProofOperation, {
             authenticator: noopAuthenticator,
           })
