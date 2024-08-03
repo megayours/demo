@@ -8,6 +8,9 @@ const BLOCKCHAIN_RID = process.env.NEXT_PUBLIC_MEGA_CHAIN_BLOCKCHAIN_RID;
 let megaYoursChromiaClient: IClient;
 
 async function getMegaYoursChromiaClient() {
+  console.log("Getting Mega Yours Chromia Client");
+  console.log("NODE_URL_POOL", NODE_URL_POOL);
+  console.log("BLOCKCHAIN_RID", BLOCKCHAIN_RID);
   if (megaYoursChromiaClient) return megaYoursChromiaClient;
 
   let config: any = {

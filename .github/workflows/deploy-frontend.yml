@@ -21,10 +21,11 @@ jobs:
         run: npm ci
 
       - name: Build
+        env:
+          NEXT_PUBLIC_D1_NODE_URL_POOL: ${{ secrets.NEXT_PUBLIC_D1_NODE_URL_POOL }}
+          NEXT_PUBLIC_MEGA_CHAIN_BLOCKCHAIN_RID: ${{ secrets.NEXT_PUBLIC_MEGA_CHAIN_BLOCKCHAIN_RID }}
+          NEXT_PUBLIC_GAME_CHAIN_BLOCKCHAIN_RID: ${{ secrets.NEXT_PUBLIC_GAME_CHAIN_BLOCKCHAIN_RID }}
         run: |
-          echo "NEXT_PUBLIC_D1_NODE_URL_POOL=${{ secrets.NEXT_PUBLIC_D1_NODE_URL_POOL }}" > .env
-          echo "NEXT_PUBLIC_MEGA_CHAIN_BLOCKCHAIN_RID=${{ secrets.NEXT_PUBLIC_MEGA_CHAIN_BLOCKCHAIN_RID }}" >> .env
-          echo "NEXT_PUBLIC_GAME_CHAIN_BLOCKCHAIN_RID=${{ secrets.NEXT_PUBLIC_GAME_CHAIN_BLOCKCHAIN_RID }}" >> .env
           npm run build
           touch out/.nojekyll
 
