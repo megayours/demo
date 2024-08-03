@@ -1,19 +1,19 @@
 import { Session, applyTransfer, noopAuthenticator, createAmountFromBalance, createKeyStoreInteractor, createSingleSigAuthDescriptorRegistration, createWeb3ProviderEvmKeyStore, hours, initTransfer, op, registerAccount, registrationStrategy, ttlLoginRule, findPathToChainForAsset, BufferId } from "@chromia/ft4";
 import { createClient } from "postchain-client";
 
-const DAPP_NODE_URL_POOL = process.env.NEXT_PUBLIC_DAPP_NODE_URL_POOL || "http://localhost:7740";
+const DAPP_NODE_URL_POOL = process.env.NEXT_PUBLIC_D1_NODE_URL_POOL || "http://localhost:7740";
 
 // Store multiple sessions
-const sessions: { [blockchainIid: number]: Session } = {};
+const sessions: { [blockchainRid: string]: Session } = {};
 
-export async function createSessionForChain(blockchainIid: number): Promise<Session> {
-  if (sessions[blockchainIid]) {
-    return sessions[blockchainIid];
+export async function createSessionForChain(blockchainRid: string): Promise<Session> {
+  if (sessions[blockchainRid]) {
+    return sessions[blockchainRid];
   }
 
   const dappClient = await createClient({
     nodeUrlPool: [DAPP_NODE_URL_POOL],
-    blockchainIid,
+    blockchainRid,
   });
 
   const evmKeyStore = await createWeb3ProviderEvmKeyStore(window.ethereum);
@@ -47,14 +47,14 @@ export async function createSessionForChain(blockchainIid: number): Promise<Sess
     newSession = session;
   }
 
-  sessions[blockchainIid] = newSession;
+  sessions[blockchainRid] = newSession;
   return newSession;
 }
 
-export async function bridgeNFT(session: Session | undefined, project: string, collection: string, tokenId: number, targetBlockchainIid: number) {
+export async function bridgeNFT(session: Session | undefined, project: string, collection: string, tokenId: number, targetBlockchainRid: string) {
   if (!session) return;
 
-  const targetSession = await createSessionForChain(targetBlockchainIid);
+  const targetSession = await createSessionForChain(targetBlockchainRid);
 
   const metadata = await session.query("yours.metadata", { project, collection, token_id: tokenId });
 
@@ -88,10 +88,10 @@ export async function bridgeNFT(session: Session | undefined, project: string, c
     .buildAndSendWithAnchoring();
 }
 
-export async function bridgeNFTBack(session: Session | undefined, project: string, collection: string, tokenId: number, sourceBlockchainIid: number) {
+export async function bridgeNFTBack(session: Session | undefined, project: string, collection: string, tokenId: number, sourceBlockchainRid: string) {
   if (!session) return;
 
-  const sourceSession = await createSessionForChain(sourceBlockchainIid);
+  const sourceSession = await createSessionForChain(sourceBlockchainRid);
 
   const metadata = await sourceSession.query("yours.metadata", { project, collection, token_id: tokenId });
 

@@ -4,6 +4,7 @@ import { useSessionContext } from "./ContextProvider";
 import { createSession } from "../lib/auth";
 import { useEffect, useState, useRef, useCallback } from "react";
 import Spinner from "./Spinner";
+import getMegaYoursChromiaClient from "../lib/megaYoursChromiaClient";
 
 const AuthButton = () => {
   const { sessions, setSession, logout, isLoading } = useSessionContext();
@@ -24,13 +25,14 @@ const AuthButton = () => {
   const handleLogin = async () => {
     console.log("Login button clicked");
     if (buttonState === 'loading') return;
+    const client = await getMegaYoursChromiaClient();
 
     setButtonState('loading');
     try {
       const { session: newSession, logout: logoutFn } = await createSession();
       if (newSession) {
         console.log("New session created:", newSession);
-        setSession(1, newSession, logoutFn);
+        setSession(client.config.blockchainRid.toUpperCase(), newSession, logoutFn);
       }
     } catch (error) {
       console.error("Failed to create session:", error);
@@ -42,10 +44,11 @@ const AuthButton = () => {
     console.log("Logout button clicked");
     if (buttonState === 'loading') return;
 
+    const client = await getMegaYoursChromiaClient();
     setButtonState('loading');
     try {
       console.log("Attempting to logout...");
-      await logout(1);
+      await logout(client.config.blockchainRid.toUpperCase());
       console.log("Logout successful");
     } catch (error) {
       console.error("Logout failed:", error);

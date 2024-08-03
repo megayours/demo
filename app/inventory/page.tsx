@@ -12,19 +12,33 @@ import { fishingGameApi } from '../api/blockchain/fishinGameApi';
 import getFishingGameChromiaClient from '../lib/fishingGameChromiaClient';
 import { NFT, NFTMetadata } from '../types/nft';
 import Modal from '../components/Modal';
+import getMegaYoursChromiaClient from '../lib/megaYoursChromiaClient';
+import { Session } from '@chromia/ft4';
 
 function ImportNFT() {
   const [consolidatedNFTs, setConsolidatedNFTs] = useState<NFT[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadingActions, setLoadingActions] = useState<Record<string, boolean>>({});
   const { sessions } = useSessionContext();
-  const session = sessions[1]; // Assuming Mega Chain has IID 1
+  const [session, setSession] = useState<Session | undefined>();
   const router = useRouter();
   const [selectedNFT, setSelectedNFT] = useState<NFT | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    fetchNFTs();
+    const fetchSession = async () => {
+      const client = await getMegaYoursChromiaClient();
+      const megaChainSession = sessions[client.config.blockchainRid.toUpperCase()];
+      setSession(megaChainSession);
+    };
+
+    fetchSession();
+  }, [sessions]);
+
+  useEffect(() => {
+    if (session) {
+      fetchNFTs();
+    }
   }, [session]);
 
   const fetchNFTs = async () => {
@@ -116,9 +130,9 @@ function ImportNFT() {
     if (session) {
       setActionLoading(tokenId, 'bridgeToFishing', true);
       try {
-        await bridgeNFT(session, project, collection, tokenId, 2);
-        await new Promise(resolve => setTimeout(resolve, 5000));
         const fishingGameClient = await getFishingGameChromiaClient();
+        await bridgeNFT(session, project, collection, tokenId, fishingGameClient.config.blockchainRid);
+        await new Promise(resolve => setTimeout(resolve, 5000));
         const bridgedNFT = await fishingGameApi.getNFT(fishingGameClient, project, collection, tokenId);
         if (bridgedNFT) {
           updateNFT({ ...bridgedNFT, token_id: tokenId, collection });
@@ -135,7 +149,8 @@ function ImportNFT() {
     if (session) {
       setActionLoading(tokenId, 'bridgeFromFishing', true);
       try {
-        await bridgeNFTBack(session, project, collection, tokenId, 2);
+        const client = await getMegaYoursChromiaClient();
+        await bridgeNFTBack(session, project, collection, tokenId, client.config.blockchainRid);
         await new Promise(resolve => setTimeout(resolve, 5000));
         const bridgedBackNFT = await megaYoursApi.getNFT(session, project, collection, tokenId);
         if (bridgedBackNFT) {

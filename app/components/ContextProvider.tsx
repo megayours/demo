@@ -3,14 +3,15 @@
 import { Session } from "@chromia/ft4";
 import { ReactNode, createContext, useContext, useState, useCallback, useEffect, useRef } from "react";
 import { createSession } from "../lib/auth";
+import getMegaYoursChromiaClient from "../lib/megaYoursChromiaClient";
 
-type SessionsType = { [blockchainIid: number]: Session | undefined };
+type SessionsType = { [blockchainRid: string]: Session | undefined };
 type LogoutFunction = (() => void) | (() => Promise<void>);
 
 const ChromiaContext = createContext<{
   sessions: SessionsType;
-  setSession: (blockchainIid: number, session: Session | undefined, logoutFn?: LogoutFunction) => void;
-  logout: (blockchainIid: number) => Promise<void>;
+  setSession: (blockchainRid: string, session: Session | undefined, logoutFn?: LogoutFunction) => void;
+  logout: (blockchainRid: string) => Promise<void>;
   isLoading: boolean;
 }>({
   sessions: {},
@@ -26,31 +27,31 @@ export function useSessionContext() {
 export function ContextProvider({ children }: { children: ReactNode }) {
   const [sessions, setSessions] = useState<SessionsType>({});
   const [isLoading, setIsLoading] = useState(true);
-  const logoutFunctionsRef = useRef<{ [blockchainIid: number]: LogoutFunction }>({});
+  const logoutFunctionsRef = useRef<{ [blockchainRid: string]: LogoutFunction }>({});
 
-  const handleSetSession = useCallback((blockchainIid: number, newSession: Session | undefined, logoutFn?: LogoutFunction) => {
-    console.log(`Setting session for blockchainIid: ${blockchainIid}`, newSession);
+  const handleSetSession = useCallback((blockchainRid: string, newSession: Session | undefined, logoutFn?: LogoutFunction) => {
+    console.log(`Setting session for blockchainRid: ${blockchainRid}`, newSession);
     setSessions(prev => {
       if (newSession === undefined) {
-        const { [blockchainIid]: _, ...rest } = prev;
+        const { [blockchainRid]: _, ...rest } = prev;
         return rest;
       }
-      return { ...prev, [blockchainIid]: newSession };
+      return { ...prev, [blockchainRid]: newSession };
     });
 
     if (newSession && logoutFn) {
-      logoutFunctionsRef.current[blockchainIid] = logoutFn;
-      localStorage.setItem(`session_${blockchainIid}`, "true");
+      logoutFunctionsRef.current[blockchainRid.toUpperCase()] = logoutFn;
+      localStorage.setItem(`session_${blockchainRid.toUpperCase()}`, "true");
     } else {
-      delete logoutFunctionsRef.current[blockchainIid];
-      localStorage.removeItem(`session_${blockchainIid}`);
+      delete logoutFunctionsRef.current[blockchainRid.toUpperCase()];
+      localStorage.removeItem(`session_${blockchainRid.toUpperCase()}`);
     }
   }, []);
 
-  const handleLogout = useCallback(async (blockchainIid: number) => {
-    console.log(`Handle logout for blockchainIid: ${blockchainIid}`);
+  const handleLogout = useCallback(async (blockchainRid: string) => {
+    console.log(`Handle logout for blockchainRid: ${blockchainRid}`);
     try {
-      const logoutFn = logoutFunctionsRef.current[blockchainIid];
+      const logoutFn = logoutFunctionsRef.current[blockchainRid.toUpperCase()];
       if (logoutFn) {
         const result = logoutFn();
         if (result instanceof Promise) {
@@ -58,16 +59,16 @@ export function ContextProvider({ children }: { children: ReactNode }) {
         }
         console.log("Logout function executed successfully");
       } else {
-        console.warn(`No logout function found for blockchainIid: ${blockchainIid}`);
+        console.warn(`No logout function found for blockchainRid: ${blockchainRid}`);
       }
       
       setSessions(prev => {
-        const { [blockchainIid]: _, ...rest } = prev;
+        const { [blockchainRid]: _, ...rest } = prev;
         return rest;
       });
       
-      delete logoutFunctionsRef.current[blockchainIid];
-      localStorage.removeItem(`session_${blockchainIid}`);
+      delete logoutFunctionsRef.current[blockchainRid.toUpperCase()];
+      localStorage.removeItem(`session_${blockchainRid.toUpperCase()}`);
       
       console.log("Session and logout function removed");
     } catch (error) {
@@ -80,26 +81,27 @@ export function ContextProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       try {
         console.log("Attempting auto-login...");
-        const persistedSessionData = localStorage.getItem('session_1');
+        const client = await getMegaYoursChromiaClient();
+        const persistedSessionData = localStorage.getItem(`session_${client.config.blockchainRid.toUpperCase()}`);
         if (persistedSessionData) {
           console.log("Found persisted session data, recreating session");
           const { session, logout } = await createSession(true);
           if (session) {
             console.log("Session recreated successfully");
-            setSessions({ 1: session });
-            logoutFunctionsRef.current[1] = logout;
+            setSessions({ [client.config.blockchainRid.toUpperCase()]: session });
+            logoutFunctionsRef.current[client.config.blockchainRid.toUpperCase()] = logout;
           } else {
             console.log("Failed to recreate session, removing persisted data");
-            localStorage.removeItem('session_1');
+            localStorage.removeItem(`session_${client.config.blockchainRid.toUpperCase()}`);
           }
         } else {
           console.log("No persisted session found, creating new session");
           const { session, logout } = await createSession(true);
           if (session) {
             console.log("New session created successfully");
-            setSessions({ 1: session });
-            logoutFunctionsRef.current[1] = logout;
-            localStorage.setItem('session_1', "true");
+            setSessions({ [client.config.blockchainRid.toUpperCase()]: session });
+            logoutFunctionsRef.current[client.config.blockchainRid.toUpperCase()] = logout;
+            localStorage.setItem(`session_${client.config.blockchainRid.toUpperCase()}`, "true");
           } else {
             console.log("Failed to create new session");
           }
