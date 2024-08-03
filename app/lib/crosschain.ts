@@ -12,8 +12,8 @@ export async function createSessionForChain(blockchainRid: string): Promise<Sess
   }
 
   const dappClient = await createClient({
-    nodeUrlPool: [DAPP_NODE_URL_POOL],
-    blockchainRid,
+    directoryNodeUrlPool: [DAPP_NODE_URL_POOL],
+    blockchainRid
   });
 
   const evmKeyStore = await createWeb3ProviderEvmKeyStore(window.ethereum);
