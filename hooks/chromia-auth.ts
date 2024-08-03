@@ -2,6 +2,9 @@ import { Session, createKeyStoreInteractor, createSingleSigAuthDescriptorRegistr
 import { createClient } from "postchain-client";
 import { useEffect, useState } from "react";
 
+const NODE_URL_POOL = process.env.NEXT_PUBLIC_D1_NODE_URL_POOL || "http://localhost:7740";
+const BLOCKCHAIN_RID = process.env.NEXT_PUBLIC_MEGA_CHAIN_BLOCKCHAIN_RID;
+
 export function useChromiaAuth() {
   console.log("Initializing Session");
   const [session, setSession] = useState<Session | null>(null)
@@ -9,11 +12,19 @@ export function useChromiaAuth() {
   useEffect(() => {
     const initSession = async () => {
       console.log("Initializing Session");
+
+      let config: any = {
+        directoryNodeUrlPool: NODE_URL_POOL,
+      };
+
+      if (BLOCKCHAIN_RID) {
+        config.blockchainRid = BLOCKCHAIN_RID;
+      } else {
+        config.blockchainIid = 1;
+      }
+
       // 1. Initialize Client
-      const client = await createClient({
-        nodeUrlPool: "http://localhost:7740",
-        blockchainIid: 0,
-      });
+      const client = await createClient(config);
 
       // 2. Connect with MetaMask
       const evmKeyStore = await createWeb3ProviderEvmKeyStore(window.ethereum);
