@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import React from 'react';
 import Link from "next/link";
+import AuthButton from '../../AuthButton';
 
 const Sidebar = ({
   isOpen,
@@ -11,9 +12,8 @@ const Sidebar = ({
 }): JSX.Element => {
   return (
     <div
-      className={`fixed w-full h-full overflow-hidden justify-center bg-[var(--color-surface)] grid pt-[120px] left-0 z-50 transition-all duration-300 ${
-        isOpen ? "top-0 opacity-100" : "-top-full opacity-0"
-      }`}
+      className={`fixed w-full h-full overflow-hidden justify-center bg-[var(--color-surface)] grid pt-[120px] left-0 z-50 transition-all duration-300 ${isOpen ? "top-0 opacity-100" : "-top-full opacity-0"
+        }`}
     >
       <button className="absolute right-0 p-5 text-white" onClick={toggle}>
         <svg
@@ -47,6 +47,9 @@ const Sidebar = ({
           <Link href="/create-nft" onClick={toggle} className="nav-link">
             Create NFT
           </Link>
+        </li>
+        <li className="py-2">
+          <AuthButton />
         </li>
       </ul>
     </div>
