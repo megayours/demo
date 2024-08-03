@@ -4,6 +4,11 @@ const nextConfig = {
   output: 'export',
   assetPrefix: process.env.NODE_ENV === 'production' ? '/demo/' : '',
   basePath: process.env.NODE_ENV === 'production' ? '/demo' : '',
+  env: {
+    NEXT_PUBLIC_D1_NODE_URL_POOL: process.env.NEXT_PUBLIC_D1_NODE_URL_POOL,
+    NEXT_PUBLIC_MEGA_CHAIN_BLOCKCHAIN_RID: process.env.NEXT_PUBLIC_MEGA_CHAIN_BLOCKCHAIN_RID,
+    NEXT_PUBLIC_GAME_CHAIN_BLOCKCHAIN_RID: process.env.NEXT_PUBLIC_GAME_CHAIN_BLOCKCHAIN_RID,
+  },
   images: {
     unoptimized: true,
     remotePatterns: [

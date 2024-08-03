@@ -26,6 +26,10 @@ jobs:
           NEXT_PUBLIC_MEGA_CHAIN_BLOCKCHAIN_RID: ${{ secrets.NEXT_PUBLIC_MEGA_CHAIN_BLOCKCHAIN_RID }}
           NEXT_PUBLIC_GAME_CHAIN_BLOCKCHAIN_RID: ${{ secrets.NEXT_PUBLIC_GAME_CHAIN_BLOCKCHAIN_RID }}
         run: |
+          echo "Building with environment variables:"
+          echo "NEXT_PUBLIC_D1_NODE_URL_POOL: $NEXT_PUBLIC_D1_NODE_URL_POOL"
+          echo "NEXT_PUBLIC_MEGA_CHAIN_BLOCKCHAIN_RID: $NEXT_PUBLIC_MEGA_CHAIN_BLOCKCHAIN_RID"
+          echo "NEXT_PUBLIC_GAME_CHAIN_BLOCKCHAIN_RID: $NEXT_PUBLIC_GAME_CHAIN_BLOCKCHAIN_RID"
           npm run build
           touch out/.nojekyll
 
