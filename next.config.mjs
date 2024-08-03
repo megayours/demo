@@ -2,6 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'export',
+  assetPrefix: process.env.NODE_ENV === 'production' ? '/demo/' : '',
+  basePath: process.env.NODE_ENV === 'production' ? '/demo' : '',
   images: {
     unoptimized: true,
     remotePatterns: [

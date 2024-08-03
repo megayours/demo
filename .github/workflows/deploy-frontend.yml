@@ -25,6 +25,7 @@ jobs:
           echo "NEXT_PUBLIC_MEGA_YOURS_NODE_URL_POOL=${{ secrets.NEXT_PUBLIC_MEGA_YOURS_NODE_URL_POOL }}" >> .env
           echo "NEXT_PUBLIC_MEGA_YOURS_BLOCKCHAIN_IID=${{ secrets.NEXT_PUBLIC_MEGA_YOURS_BLOCKCHAIN_IID }}" >> .env
           npm run build
+          touch out/.nojekyll
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3

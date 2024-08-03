@@ -6,6 +6,7 @@ import Navigation from "./components/navigation";
 export const metadata: Metadata = {
   title: "Mega Yours - Your NFT Universe",
   description: "Explore, create, and trade NFTs in the Mega Yours universe",
+  metadataBase: new URL('https://megayours.github.io/demo'),
 };
 
 export default function RootLayout({
