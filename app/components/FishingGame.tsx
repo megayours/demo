@@ -220,7 +220,7 @@ const FishingGame: React.FC<{ initialNFT: NFT }> = ({ initialNFT }) => {
   if (fishingRods.length === 0) {
     return (
       <div className="text-center p-4 bg-[var(--color-surface)] rounded-lg">
-        <p className="text-lg font-semibold mb-2">You don't have any Fishing Rods!</p>
+        <p className="text-lg font-semibold mb-2">You don&apos;t have any Fishing Rods!</p>
         <p className="mb-4">Visit the Inventory to bridge your Fishing Rods and start fishing.</p>
         <Link href="/inventory" className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors">
           Go to Inventory
