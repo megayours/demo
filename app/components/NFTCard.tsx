@@ -69,8 +69,11 @@ const NFTCard: React.FC<NFTCardProps> = ({ imageUrl, tokenName, tokenDescription
       </div>
       <div className="p-4">
         <h2 className="text-xl font-semibold text-white mb-2">{tokenName}</h2>
-        <div className={`inline-block bg-gradient-to-r ${getBlockchainGradient(blockchain)} text-white text-xs font-semibold px-2 py-1 rounded-full mb-2`}>
-          {blockchain}
+        <div className="items-center gap-2 mb-3">
+          <p className="text-sm font-semibold text-gray-200 whitespace-nowrap">Token & Metadata Source</p>
+          <div className={`inline-flex bg-gradient-to-r ${getBlockchainGradient(blockchain)} text-white text-sm font-medium px-3 py-1 rounded-full mt-2`}>
+            {blockchain}
+          </div>
         </div>
         <p className="text-gray-300 text-sm line-clamp-3 mb-4">{tokenDescription}</p>
 

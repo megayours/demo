@@ -7,10 +7,10 @@ declare global {
   }
 }
 
-export async function createSession(autoLogin: boolean = false): Promise<{ session: Session | undefined, logout: () => void }> {
+export async function createSession(): Promise<{ session: Session | undefined, logout: () => void }> {
   if (!window.ethereum) {
     console.error(`Ethereum not found on window`);
-    return { session: undefined, logout: () => {} };
+    return { session: undefined, logout: () => { } };
   }
 
   const client = await getMegaYoursChromiaClient();
@@ -25,44 +25,6 @@ export async function createSession(autoLogin: boolean = false): Promise<{ sessi
 
   if (accounts.length > 0) {
     const accountId = accounts[0].id;
-    if (autoLogin) {
-      const keyStore = await loginKeyStore.getKeyStore(accountId);
-      const pubKey = keyStore?.pubKey;
-      if (!pubKey) return { session: undefined, logout: () => {} };
-
-      // const adID = await client.query("ft4.get_first_allowed_auth_descriptor_by_signers", {
-      //   op_name: "importer.import_nft",
-      //   args: [],
-      //   account_id: accountId,
-      //   signers: [pubKey]
-      // });
-      // const isValidAD = await client.query("ft4.is_auth_descriptor_valid", {
-      //   account_id: accountId,
-      //   auth_descriptor_id: adID
-      // });
-      const isValidAD = true; // Placeholder for actual validation
-      if (isValidAD) {
-        const { session, logout } = await evmKeyStoreInteractor.login({
-          accountId: accountId,
-          loginKeyStore,
-          config: {
-            rules: ttlLoginRule(hours(2)),
-            flags: ["MySession"]
-          }
-        });
-
-        return { 
-          session, 
-          logout: () => {
-            logout();
-            console.log('Logging out...');
-          }
-        };
-      } else {
-        return { session: undefined, logout: () => {} };
-      }
-    }
-    
     const { session, logout } = await evmKeyStoreInteractor.login({
       accountId: accountId,
       loginKeyStore,
@@ -71,24 +33,8 @@ export async function createSession(autoLogin: boolean = false): Promise<{ sessi
         flags: ["MySession"]
       }
     });
-    return { 
-      session, 
-      logout: () => {
-        logout();
-        console.log('Logging out...');
-      }
-    };
-  } else if (!autoLogin) {
-    const authDescriptor = createSingleSigAuthDescriptorRegistration(["A", "T"], evmKeyStore.id);
-    const { session, logout } = await registerAccount(client, evmKeyStore, registrationStrategy.open(authDescriptor, {
-      config: {
-        rules: ttlLoginRule(hours(2)),
-        flags: ["MySession"]
-      }
-    }));
-
-    return { 
-      session, 
+    return {
+      session,
       logout: () => {
         logout();
         console.log('Logging out...');
@@ -96,5 +42,19 @@ export async function createSession(autoLogin: boolean = false): Promise<{ sessi
     };
   }
 
-  return { session: undefined, logout: () => {} };
+  const authDescriptor = createSingleSigAuthDescriptorRegistration(["A", "T"], evmKeyStore.id);
+  const { session, logout } = await registerAccount(client, evmKeyStore, registrationStrategy.open(authDescriptor, {
+    config: {
+      rules: ttlLoginRule(hours(2)),
+      flags: ["MySession"]
+    }
+  }));
+
+  return {
+    session,
+    logout: () => {
+      logout();
+      console.log('Logging out...');
+    }
+  };
 }

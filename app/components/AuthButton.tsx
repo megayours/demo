@@ -7,20 +7,14 @@ import Spinner from "./Spinner";
 import getMegaYoursChromiaClient from "../lib/megaYoursChromiaClient";
 
 const AuthButton = () => {
-  const { sessions, setSession, logout, isLoading } = useSessionContext();
-  const [buttonState, setButtonState] = useState<'login' | 'logout' | 'loading'>('loading');
+  const { sessions, setSession, logout } = useSessionContext();
+  const [buttonState, setButtonState] = useState<'login' | 'logout' | 'loading' | 'no-wallet'>('loading');
   const loginAttemptedRef = useRef(true);
 
   useEffect(() => {
     console.log("Effect triggered - Sessions changed:", sessions);
-    console.log("Effect triggered - isLoading:", isLoading);
-    if (isLoading) {
-      setButtonState('loading');
-    } else {
-      setButtonState(Object.keys(sessions).length > 0 ? 'logout' : 'login');
-    }
-    console.log("Button state set to:", buttonState);
-  }, [sessions, isLoading]);
+    setButtonState(Object.keys(sessions).length > 0 ? 'logout' : 'login');
+  }, [sessions]);
 
   const handleLogin = async () => {
     console.log("Login button clicked");
@@ -33,6 +27,8 @@ const AuthButton = () => {
       if (newSession) {
         console.log("New session created:", newSession);
         setSession(client.config.blockchainRid.toUpperCase(), newSession, logoutFn);
+      } else {
+        setButtonState('no-wallet');
       }
     } catch (error) {
       console.error("Failed to create session:", error);
@@ -59,7 +55,7 @@ const AuthButton = () => {
   }, [logout, buttonState]);
 
   const buttonClass = `
-    flex items-center justify-center w-32 px-4 py-2 rounded-full text-white font-semibold
+    flex items-center justify-center w-50 px-4 py-2 rounded-full text-white font-semibold
     transition-all duration-300 ease-in-out
     focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-accent)]
   `;
@@ -73,7 +69,7 @@ const AuthButton = () => {
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
           </svg>
-          <span>Login</span>
+          <span>Connect Wallet</span>
         </>
       )
     },
@@ -85,7 +81,7 @@ const AuthButton = () => {
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
           </svg>
-          <span>Logout</span>
+          <span>Disconnect Wallet</span>
         </>
       )
     },
@@ -93,6 +89,11 @@ const AuthButton = () => {
       class: `${buttonClass} bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 cursor-not-allowed`,
       onClick: () => { console.log("Loading button clicked"); },
       content: <Spinner size="medium" />
+    },
+    'no-wallet': {
+      class: `${buttonClass} bg-gray-500 cursor-not-allowed`,
+      onClick: () => { console.log("No wallet button clicked"); },
+      content: <span>MetaMask Missing</span>
     }
   };
 

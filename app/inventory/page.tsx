@@ -248,30 +248,39 @@ function ImportNFT() {
           <div className="p-4">
             <h2 className="text-xl font-bold mb-4">Select a target blockchain</h2>
             <div className="space-y-2">
-              {selectedNFT.blockchain === "Ethereum" && (
-                <button
-                  className="w-full bg-blue-500 text-white py-2 px-4 rounded"
-                  onClick={() => executeBridge("Mega Chain")}
-                >
-                  Mega Chain
-                </button>
-              )}
-              {selectedNFT.blockchain === "Mega Chain" && (
-                <button
-                  className="w-full bg-green-500 text-white py-2 px-4 rounded"
-                  onClick={() => executeBridge("Fishing Game")}
-                >
-                  Fishing Game
-                </button>
-              )}
-              {selectedNFT.blockchain === "Fishing Game" && (
-                <button
-                  className="w-full bg-purple-500 text-white py-2 px-4 rounded"
-                  onClick={() => executeBridge("Mega Chain")}
-                >
-                  Mega Chain
-                </button>
-              )}
+              <button
+                className={`w-full py-2 px-4 rounded transition-all duration-200 ${
+                  selectedNFT.blockchain !== "Ethereum"
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed opacity-50"
+                    : "bg-blue-500 text-white hover:bg-blue-600"
+                }`}
+                onClick={() => executeBridge("Mega Chain")}
+                disabled={selectedNFT.blockchain !== "Ethereum"}
+              >
+                Mega Chain
+              </button>
+              <button
+                className={`w-full py-2 px-4 rounded transition-all duration-200 ${
+                  selectedNFT.blockchain !== "Mega Chain"
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed opacity-50"
+                    : "bg-green-500 text-white hover:bg-green-600"
+                }`}
+                onClick={() => executeBridge("Fishing Game")}
+                disabled={selectedNFT.blockchain !== "Mega Chain"}
+              >
+                Fishing Game
+              </button>
+              <button
+                className={`w-full py-2 px-4 rounded transition-all duration-200 ${
+                  selectedNFT.blockchain !== "Fishing Game"
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed opacity-50"
+                    : "bg-purple-500 text-white hover:bg-purple-600"
+                }`}
+                onClick={() => executeBridge("Mega Chain")}
+                disabled={selectedNFT.blockchain !== "Fishing Game"}
+              >
+                Mega Chain
+              </button>
             </div>
           </div>
         )}
