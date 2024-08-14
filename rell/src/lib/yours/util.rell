@@ -1,7 +1,0 @@
-function ensure_project(name) {
-  return project @? { name } ?: create project ( name );
-}
-
-function ensure_collection(name, project) {
-  return collection @? { name } ?: create collection ( name, project );
-}

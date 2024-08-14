@@ -57,7 +57,7 @@ export async function bridgeNFT(session: Session | undefined, project: string, c
   const targetSession = await createSessionForChain(targetBlockchainRid);
 
   const metadata = await session.query("yours.metadata", { project, collection, token_id: tokenId });
-  console.log(`Metadata: ${metadata}`);
+  console.log(`Metadata: ${JSON.stringify(metadata)}`);
   await session.transactionBuilder()
     .add(op(
       "yours.init_transfer",
