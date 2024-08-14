@@ -13,8 +13,8 @@ const FishingRodList: React.FC<FishingRodListProps> = ({ rods, selectedRod, onRo
     <div className="bg-[var(--color-surface)] p-4 rounded-lg shadow-lg">
       <div className="space-y-2">
         {rods.map((rod) => {
-          const durability = rod.metadata.attributes.find(attr => attr.trait_type === "Durability");
-          const equippedBy = rod.metadata.attributes.find(attr => attr.trait_type === "Equipped By");
+          const durability = rod.metadata.properties["Durability"];
+          const equippedBy = rod.metadata.properties["Equipped By"];
 
           return (
             <div
@@ -26,7 +26,7 @@ const FishingRodList: React.FC<FishingRodListProps> = ({ rods, selectedRod, onRo
             >
               <div className="w-10 h-10 relative mr-2 flex-shrink-0">
                 <Image
-                  src={rod.metadata.image}
+                  src={rod.metadata.image ?? ""}
                   alt={rod.metadata.name}
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -39,12 +39,12 @@ const FishingRodList: React.FC<FishingRodListProps> = ({ rods, selectedRod, onRo
                 <div className="mt-1 flex flex-wrap gap-1">
                   {durability && (
                     <span className="text-xs bg-[var(--color-surface)] text-white rounded-full px-2 py-0.5 truncate">
-                      Durability: {durability.value}
+                      Durability: {String(durability)}
                     </span>
                   )}
                   {equippedBy && (
                     <span className="text-xs bg-[var(--color-surface)] text-white rounded-full px-2 py-0.5 truncate">
-                      Equipped By: {equippedBy.value}
+                      Equipped By: {String(equippedBy)}
                     </span>
                   )}
                 </div>

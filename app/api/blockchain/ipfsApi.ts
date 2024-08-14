@@ -1,4 +1,4 @@
-import { NFTMetadata } from "@/app/types/nft";
+import { ERC721Metadata } from "@/app/types/nft";
 
 export const ipfsApi = {
   getGatewayUrl: (ipfsUrl: string): string => {
@@ -10,7 +10,7 @@ export const ipfsApi = {
     return ipfsUrl; // Return the original URL if it's not an IPFS URL
   },
 
-  fetchNFTMetadata: async (url: string): Promise<NFTMetadata> => {
+  fetchNFTMetadata: async (url: string): Promise<ERC721Metadata> => {
     const response = await fetch(ipfsApi.getGatewayUrl(url));
     const data = await response.json();
     return {

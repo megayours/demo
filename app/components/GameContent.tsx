@@ -22,7 +22,7 @@ export default function GameContent() {
         try {
           const fishingGameClient = await getFishingGameChromiaClient();
           const fetchedNFT = await fishingGameApi.getNFT(fishingGameClient, project, collection, parseInt(tokenId));
-          if (fetchedNFT && fetchedNFT.collection === collection) {
+          if (fetchedNFT && fetchedNFT.metadata.yours.collection === collection) {
             setNFT(fetchedNFT);
           }
         } catch (error) {

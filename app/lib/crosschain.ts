@@ -1,5 +1,6 @@
 import { Session, applyTransfer, noopAuthenticator, createAmountFromBalance, createKeyStoreInteractor, createSingleSigAuthDescriptorRegistration, createWeb3ProviderEvmKeyStore, hours, initTransfer, op, registerAccount, registrationStrategy, ttlLoginRule, findPathToChainForAsset, BufferId } from "@chromia/ft4";
 import { createClient } from "postchain-client";
+import { serializeTokenMetadata, TokenMetadata } from "../types/nft";
 
 const DAPP_NODE_URL_POOL = process.env.NEXT_PUBLIC_D1_NODE_URL_POOL || "http://localhost:7740";
 
@@ -56,7 +57,7 @@ export async function bridgeNFT(session: Session | undefined, project: string, c
 
   const targetSession = await createSessionForChain(targetBlockchainRid);
 
-  const metadata = await session.query("yours.metadata", { project, collection, token_id: tokenId });
+  const metadata = await session.query<TokenMetadata>("yours.metadata", { project, collection, token_id: tokenId });
   console.log(`Metadata: ${JSON.stringify(metadata)}`);
   await session.transactionBuilder()
     .add(op(
@@ -66,7 +67,7 @@ export async function bridgeNFT(session: Session | undefined, project: string, c
       collection,
       tokenId,
       1,
-      metadata
+      serializeTokenMetadata(metadata)
     ), {
       onAnchoredHandler: async (data) => {
         if (!data) throw new Error("No data provided");
@@ -93,7 +94,7 @@ export async function bridgeNFTBack(megaChainSession: Session | undefined, proje
 
   const sourceSession = await createSessionForChain(sourceBlockchainRid);
 
-  const metadata = await sourceSession.query("yours.metadata", { project, collection, token_id: tokenId });
+  const metadata = await sourceSession.query<TokenMetadata>("yours.metadata", { project, collection, token_id: tokenId });
 
   await sourceSession.transactionBuilder()
     .add(op(
@@ -103,7 +104,7 @@ export async function bridgeNFTBack(megaChainSession: Session | undefined, proje
       collection,
       tokenId,
       1,
-      metadata
+      serializeTokenMetadata(metadata)
     ), {
       onAnchoredHandler: async (data) => {
         if (!data) throw new Error("No data provided");

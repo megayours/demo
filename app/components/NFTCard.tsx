@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import React from 'react';
 import Spinner from './Spinner';
-import { NFTMetadata, NFTAttribute } from '../types/nft';
+import { Property, TokenMetadata } from '../types/nft';
 
 const getBlockchainGradient = (blockchain: string): string => {
   switch (blockchain.toLowerCase()) {
@@ -34,25 +34,30 @@ interface NFTCardProps {
   imageUrl: string;
   tokenName: string;
   tokenDescription: string;
-  metadata: NFTMetadata;
+  metadata: TokenMetadata;
   blockchain: string;
   isGamePage?: boolean;
   actions?: { label: string; onClick: () => void; loading: boolean }[];
 }
 
 const NFTCard: React.FC<NFTCardProps> = ({ imageUrl, tokenName, tokenDescription, metadata, blockchain, isGamePage = false, actions = [] }) => {
-  const renderAttribute = (attribute: NFTAttribute, index: number) => (
+  const filteredProperties: [string, string | number | boolean | Property][] = isGamePage
+    ? Object.entries(metadata.properties).filter(([key]) => 
+        ['Fishes Caught', 'Fishing Rod'].includes(key)
+      )
+    : Object.entries(metadata.properties);
+
+  const renderAttribute = (attribute: [string, string | number | boolean | Property], index: number) => (
     <div
-      key={`${attribute.trait_type}-${index}`}
-      className={`${getAttributeColor(attribute.trait_type)} rounded-lg p-2 text-xs`}
+      key={`${attribute[0]}-${index}`}
+      className={`${getAttributeColor(attribute[0])} rounded-lg p-2 text-xs`}
     >
-      <span className="font-semibold">{attribute.trait_type}:</span> {attribute.value}
+      <span className="font-semibold">{attribute[0]}:</span>{' '}
+      {typeof attribute[1] === 'object' && 'value' in attribute[1]
+        ? String(attribute[1].value)
+        : String(attribute[1])}
     </div>
   );
-
-  const filteredAttributes = isGamePage
-    ? metadata.attributes.filter(attr => ['Fishes Caught', 'Fishing Rod'].includes(attr.trait_type))
-    : metadata.attributes;
 
   return (
     <div className="bg-[var(--color-card)] rounded-lg shadow-xl overflow-hidden transition-transform duration-300 hover:scale-105 max-w-sm mx-auto">
@@ -80,7 +85,7 @@ const NFTCard: React.FC<NFTCardProps> = ({ imageUrl, tokenName, tokenDescription
         {/* Attributes Section */}
         <div className="mb-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {filteredAttributes.map((attribute, index) => renderAttribute(attribute, index))}
+            {filteredProperties.map((attribute, index) => renderAttribute(attribute, index))}
           </div>
         </div>
 

@@ -38,3 +38,4 @@ next-env.d.ts
 # Chromia
 .chromia/
 .secret
+rell/src/lib/*

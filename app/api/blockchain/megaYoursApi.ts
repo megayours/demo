@@ -1,41 +1,26 @@
-import { NFT, NFTMetadata } from "@/app/types/nft";
+import { NFT, serializeTokenMetadata, TokenMetadata } from "@/app/types/nft";
 import { Session, op } from "@chromia/ft4";
+
+const chainName = "Mega Chain";
 
 export const megaYoursApi = {
   getNFT: async (session: Session, project: string, collection: string, tokenId: number): Promise<NFT> => {
-    const metadata = await session.query<NFTMetadata>("yours.metadata", { project, collection, token_id: tokenId });
+    const metadata = await session.query<TokenMetadata>("yours.metadata", { project, collection, token_id: tokenId });
     return {
       token_id: tokenId,
-      metadata,
-      blockchain: "Mega Chain",
-      project: metadata.yours?.project || "MISSING",
-      collection: metadata.yours?.collection || "MISSING",
+      metadata: metadata,
+      blockchain: chainName,
     };
   },
 
   getNFTs: async (session: Session): Promise<NFT[]> => {
     return (await session.query<NFT[]>("importer.get_tokens")).map((nft) => ({
       ...nft,
-      blockchain: "Mega Chain",
-      project: nft.metadata.yours?.project || "MISSING",
-      collection: nft.metadata.yours?.collection || "MISSING",
+      blockchain: chainName
     }));
   },
 
-  importNFT: async (session: Session, project: string, collection: string, tokenId: number, nft: NFTMetadata): Promise<void> => {
-    await session.call(op("importer.import_token", 
-    [
-      nft.name,
-      nft.attributes.map((a) => [a.trait_type, a.value]),
-      [
-        [],
-        project,
-        collection
-      ],
-      nft.description,
-      nft.image,
-      null
-    ],
-    tokenId));
+  importNFT: async (session: Session, tokenId: number, metadata: TokenMetadata): Promise<void> => {
+    await session.call(op("importer.import_token", serializeTokenMetadata(metadata), tokenId));
   },
 };

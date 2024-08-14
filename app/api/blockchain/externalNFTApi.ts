@@ -1,4 +1,4 @@
-import { NFT } from "@/app/types/nft";
+import { convertERC721Metadata, NFT } from "@/app/types/nft";
 import { ipfsApi } from "./ipfsApi";
 
 const project = "TheIglooCompany";
@@ -18,10 +18,8 @@ export const externalNFTApi = {
         const metadata = await ipfsApi.fetchNFTMetadata(`${penguinMetadataPrefix}/${tokenId}`);
         return {
           token_id: tokenId,
-          metadata: metadata,
-          blockchain: "Ethereum",
-          project: project,
-          collection: penguinCollection,
+          metadata: convertERC721Metadata(metadata, project, penguinCollection),
+          blockchain: "Ethereum"
         };
       })
     );
@@ -36,14 +34,10 @@ export const externalNFTApi = {
           ]
         };
 
-        console.log("fixedMetadata", fixedMetadata);
-
         return {
           token_id: tokenId,
-          metadata: fixedMetadata,
+          metadata: convertERC721Metadata(fixedMetadata, project, rodCollection),
           blockchain: "Ethereum",
-          project: project,
-          collection: rodCollection,
         };
       })
     );

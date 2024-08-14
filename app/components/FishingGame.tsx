@@ -23,15 +23,15 @@ const FishingGame: React.FC<{ initialNFT: NFT }> = ({ initialNFT }) => {
         const fishingGameClient = await getFishingGameChromiaClient();
         const rods = await fishingGameApi.getPudgyRods(fishingGameClient);
         const rodNFTs = await Promise.all(
-          rods.map(rod => fishingGameApi.getNFT(fishingGameClient, initialNFT.project, 'Pudgy Rods', rod.id))
+          rods.map(rod => fishingGameApi.getNFT(fishingGameClient, initialNFT.metadata.yours.project, 'Pudgy Rods', rod.id))
         );
         const filteredRods = rodNFTs.filter((rod): rod is NFT => rod !== undefined);
         setFishingRods(filteredRods);
 
         // Check if a rod is already equipped
-        const equippedRodAttr = nft.metadata.attributes.find(attr => attr.trait_type === "Fishing Rod");
+        const equippedRodAttr = nft.metadata.properties["Fishing Rod"];
         if (equippedRodAttr) {
-          const equippedRod = filteredRods.find(rod => rod.metadata.name === equippedRodAttr.value);
+          const equippedRod = filteredRods.find(rod => rod.metadata.name === equippedRodAttr);
           if (equippedRod) {
             setSelectedRod(equippedRod.token_id);
           }
@@ -44,7 +44,7 @@ const FishingGame: React.FC<{ initialNFT: NFT }> = ({ initialNFT }) => {
     };
 
     fetchFishingRods();
-  }, [nft.metadata.attributes]);
+  }, [nft.metadata.properties]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -129,14 +129,14 @@ const FishingGame: React.FC<{ initialNFT: NFT }> = ({ initialNFT }) => {
   const refreshNFTMetadata = async () => {
     try {
       const fishingGameClient = await getFishingGameChromiaClient();
-      const updatedNFT = await fishingGameApi.getNFT(fishingGameClient, nft.project, nft.collection, nft.token_id);
+      const updatedNFT = await fishingGameApi.getNFT(fishingGameClient, nft.metadata.yours.project, nft.metadata.yours.collection, nft.token_id);
       if (updatedNFT) {
         setNFT(updatedNFT);
       }
 
       // Refresh fishing rod metadata
       const updatedRods = await Promise.all(
-        fishingRods.map(rod => fishingGameApi.getNFT(fishingGameClient, nft.project, 'Pudgy Rods', rod.token_id))
+        fishingRods.map(rod => fishingGameApi.getNFT(fishingGameClient, nft.metadata.yours.project, 'Pudgy Rods', rod.token_id))
       );
       setFishingRods(updatedRods.filter((rod): rod is NFT => rod !== undefined));
     } catch (error) {
@@ -260,9 +260,9 @@ const FishingGame: React.FC<{ initialNFT: NFT }> = ({ initialNFT }) => {
       <div className="md:col-span-1 order-2 flex flex-col">
         <div className="mb-4">
           <NFTCard
-            imageUrl={nft.metadata.image}
+            imageUrl={nft.metadata.image ?? ""}
             tokenName={nft.metadata.name}
-            tokenDescription={nft.metadata.description}
+            tokenDescription={nft.metadata.description ?? ""}
             metadata={nft.metadata}
             blockchain={nft.blockchain}
             isGamePage={true}
