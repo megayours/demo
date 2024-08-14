@@ -1,4 +1,4 @@
-import { NFT } from "@/app/types/nft";
+import { NFT, TokenMetadata } from "@/app/types/nft";
 import { nop, op } from "@chromia/ft4";
 import { IClient } from "postchain-client";
 
@@ -8,14 +8,12 @@ type PudgyRod = {
 
 export const fishingGameApi = {
   getNFT: async (client: IClient, project: string, collection: string, tokenId: number): Promise<NFT | undefined> => {
-    const metadata = await client.query<any>("yours.metadata", { project, collection, token_id: tokenId });
+    const metadata = await client.query<TokenMetadata>("yours.metadata", { project, collection, token_id: tokenId });
     if (metadata == null) return undefined;
     return {
       token_id: tokenId,
       metadata,
       blockchain: "Fishing Game",
-      project: metadata.yours.project,
-      collection: metadata.yours.collection,
     };
   },
 
