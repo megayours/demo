@@ -6,22 +6,39 @@ import { NFT } from '../types/nft';
 import { fishingGameApi } from '../api/blockchain/fishinGameApi';
 import getFishingGameChromiaClient from '../lib/fishingGameChromiaClient';
 import FishingGame from './FishingGame';
+import { Session } from '@chromia/ft4';
+import getMegaYoursChromiaClient from '../lib/megaYoursChromiaClient';
+import { useSessionContext } from './ContextProvider';
 
 export default function GameContent() {
+  const { sessions } = useSessionContext();
+  const [session, setSession] = useState<Session | undefined>();
+
   const [nft, setNFT] = useState<NFT | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    const fetchSession = async () => {
+      console.log("Fetching session");
+      const client = await getMegaYoursChromiaClient();
+      const megaChainSession = sessions[client.config.blockchainRid.toUpperCase()];
+      setSession(megaChainSession);
+    };
+
+    fetchSession();
+  }, [sessions]);
+
+  useEffect(() => {
     const fetchNFT = async () => {
+      if (!session) return;
       const tokenId = searchParams.get('tokenId');
       const project = searchParams.get('project');
       const collection = searchParams.get('collection');
 
       if (tokenId && collection && project) {
         try {
-          const fishingGameClient = await getFishingGameChromiaClient();
-          const fetchedNFT = await fishingGameApi.getNFT(fishingGameClient, project, collection, parseInt(tokenId));
+          const fetchedNFT = await fishingGameApi.getNFT(session, project, collection, parseInt(tokenId));
           if (fetchedNFT && fetchedNFT.metadata.yours.collection === collection) {
             setNFT(fetchedNFT);
           }
@@ -42,6 +59,10 @@ export default function GameContent() {
     return <div className="container mx-auto px-4 py-8 text-white">Loading...</div>;
   }
 
+  if (!session) {
+    return <div className="container mx-auto px-4 py-8 text-white">Session not found.</div>;
+  }
+
   if (!nft) {
     return <div className="container mx-auto px-4 py-8 text-white">NFT not found or not part of the Pudgy Penguin Collection.</div>;
   }
@@ -49,7 +70,7 @@ export default function GameContent() {
   return (
     <div className="container mx-auto px-4 py-4 min-h-screen">
       <div className="bg-[var(--color-background)] rounded-lg shadow-md p-4 md:p-6">
-        <FishingGame initialNFT={nft} />
+        <FishingGame initialNFT={nft} session={session} />
       </div>
     </div>
   );

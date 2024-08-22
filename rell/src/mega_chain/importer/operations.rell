@@ -3,8 +3,10 @@ function () = auth.add_auth_handler(
   flags = []
 );
 
-operation import_token(metadata: yours.token_metadata_incoming, token_id: integer) {
+operation import_token(metadata: yours.token_metadata_incoming, chain: name, contract: text, token_id: integer) {
   val account = auth.authenticate();
+
+  create imported_token(chain, contract, token_id);
 
   val token = yours.create_token_with_id(
     yours.token_info(

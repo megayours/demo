@@ -1,5 +1,5 @@
-import { NFT, TokenMetadata } from "@/app/types/nft";
-import { nop, op } from "@chromia/ft4";
+import { NFT } from "@/app/types/nft";
+import { nop, op, Session } from "@chromia/ft4";
 import { IClient } from "postchain-client";
 
 type PudgyRod = {
@@ -7,8 +7,15 @@ type PudgyRod = {
 }
 
 export const fishingGameApi = {
-  getNFT: async (client: IClient, project: string, collection: string, tokenId: number): Promise<NFT | undefined> => {
-    const metadata = await client.query<TokenMetadata>("yours.metadata", { project, collection, token_id: tokenId });
+  getNFTs: async (client: IClient, accountId: Buffer): Promise<NFT[]> => {
+    return (await client.query<NFT[]>("pudgy.get_tokens", { account_id: accountId })).map((nft) => ({
+      ...nft,
+      blockchain: "Fishing Game"
+    }));
+  },
+
+  getNFT: async (session: Session, project: string, collection: string, tokenId: number): Promise<NFT | undefined> => {
+    const metadata = await session.query<any>("yours.metadata", { project, collection, token_id: tokenId });
     if (metadata == null) return undefined;
     return {
       token_id: tokenId,
@@ -17,8 +24,8 @@ export const fishingGameApi = {
     };
   },
 
-  getPudgyRods: async (client: IClient): Promise<PudgyRod[]> => {
-    return client.query<PudgyRod[]>("pudgy.get_rods", {});
+  getPudgyRods: async (session: Session): Promise<PudgyRod[]> => {
+    return session.query<PudgyRod[]>("pudgy.get_rods", { account_id: session.account.id });
   },
 
   equipRod: async (client: IClient, pudgyPenguinId: number, pudgyRodId: number): Promise<void> => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import NFTCard from '../components/NFTCard';
 import Spinner from '../components/Spinner';
@@ -14,96 +14,148 @@ import { NFT, TokenMetadata } from '../types/nft';
 import Modal from '../components/Modal';
 import getMegaYoursChromiaClient from '../lib/megaYoursChromiaClient';
 import { Session } from '@chromia/ft4';
-import { Token } from '../lib/yours-client/types';
+import { createSession } from '../lib/auth';
+import debounce from 'lodash/debounce';
 
 function ImportNFT() {
-  const [consolidatedNFTs, setConsolidatedNFTs] = useState<NFT[]>([]);
+  const [megaChainNFTs, setMegaChainNFTs] = useState<NFT[]>([]);
+  const [ethereumNFTs, setEthereumNFTs] = useState<NFT[]>([]);
+  const [fishingGameNFTs, setFishingGameNFTs] = useState<NFT[]>([]);
+  const [bridgedNFTs, setBridgedNFTs] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState<'megaChain' | 'ethereum' | 'fishingGame'>('megaChain');
   const [isLoading, setIsLoading] = useState(true);
   const [loadingActions, setLoadingActions] = useState<Record<string, boolean>>({});
-  const { sessions } = useSessionContext();
-  const [session, setSession] = useState<Session | undefined>();
+  const { sessions, setSession } = useSessionContext();
+  const [megaChainSession, setMegaChainSession] = useState<Session | undefined>();
+  const [fishingGameSession, setFishingGameSession] = useState<Session | undefined>();
   const router = useRouter();
   const [selectedNFT, setSelectedNFT] = useState<NFT | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    const fetchSession = async () => {
-      const client = await getMegaYoursChromiaClient();
-      const megaChainSession = sessions[client.config.blockchainRid.toUpperCase()];
-      setSession(megaChainSession);
+    const fetchSessions = async () => {
+      const megaClient = await getMegaYoursChromiaClient();
+      const megaSession = sessions[megaClient.config.blockchainRid.toUpperCase()];
+      setMegaChainSession(megaSession);
+
+      const fishingClient = await getFishingGameChromiaClient();
+      const fishingSession = sessions[fishingClient.config.blockchainRid.toUpperCase()];
+      setFishingGameSession(fishingSession);
     };
 
-    fetchSession();
+    fetchSessions();
   }, [sessions]);
 
+  const debouncedRefresh = useCallback(
+    debounce(() => refreshActiveTabTokens(), 300),
+    [megaChainSession, fishingGameSession]
+  );
+
   useEffect(() => {
-    if (session) {
-      fetchNFTs();
+    if (megaChainSession) {
+      debouncedRefresh();
     }
-  }, [session]);
+  }, [activeTab, megaChainSession, fishingGameSession, debouncedRefresh]);
 
-  const fetchNFTs = async () => {
-    if (session) {
-      setIsLoading(true);
-      try {
-        const externalNFTs = await externalNFTApi.getNFTs();
-        const megaYoursNFTs = await megaYoursApi.getNFTs(session);
-        const fishingGameClient = await getFishingGameChromiaClient();
-
-        console.log(`External NFTs: ${JSON.stringify(externalNFTs)}`);
-        console.log(`Mega Yours NFTs: ${JSON.stringify(megaYoursNFTs)}`);
-
-        const consolidated: NFT[] = [];
-
-        // Process external NFTs (Ethereum)
-        consolidated.push(...externalNFTs);
-
-        // Process Mega Yours NFTs
-        for (const nft of megaYoursNFTs) {
-          const existingIndex = consolidated.findIndex(c => c.token_id === nft.token_id);
-          if (existingIndex !== -1) {
-            consolidated[existingIndex] = { 
-              metadata: nft.metadata, 
-              blockchain: nft.blockchain, 
-              token_id: nft.token_id,
-            };
-          } else {
-            consolidated.push(nft);
-          }
-        }
-
-        // Process Fishing Game NFTs
-        for (const nft of megaYoursNFTs) {
-          const fishingNFT = await fishingGameApi.getNFT(fishingGameClient, nft.metadata.yours.project, nft.metadata.yours.collection, nft.token_id);
-          console.log(`Fishing Game NFT: ${JSON.stringify(fishingNFT)}`);
-          if (fishingNFT) {
-            const existingIndex = consolidated.findIndex(c => c.token_id === nft.token_id);
-            if (existingIndex !== -1) {
-              console.log("Updating NFT as Fishing one");
-              consolidated[existingIndex] = { 
-                metadata: fishingNFT.metadata, 
-                blockchain: fishingNFT.blockchain, 
-                token_id: nft.token_id,
-              };
-            }
-          }
-        }
-
-        setConsolidatedNFTs(consolidated);
-      } catch (error) {
-        console.error("Error fetching NFTs:", error);
-      } finally {
-        setIsLoading(false);
+  const refreshActiveTabTokens = async () => {
+    setIsLoading(true);
+    try {
+      // Always fetch Mega Chain and Fishing Game NFTs to keep bridgedNFTs up-to-date
+      if (megaChainSession) {
+        const megaYoursNFTs = await megaYoursApi.getNFTs(megaChainSession);
+        setMegaChainNFTs(megaYoursNFTs);
+        updateBridgedNFTs(megaYoursNFTs);
       }
+  
+      if (fishingGameSession) {
+        const fishingGameClient = await getFishingGameChromiaClient();
+        const fishingGameTokens = await fishingGameApi.getNFTs(fishingGameClient, fishingGameSession.account.id);
+        setFishingGameNFTs(fishingGameTokens);
+        updateBridgedNFTs(fishingGameTokens);
+      } else if (activeTab === 'fishingGame') {
+        await authenticateFishingGame();
+      }
+  
+      // Fetch and filter Ethereum NFTs
+      if (activeTab === 'ethereum') {
+        const externalNFTs = await externalNFTApi.getNFTs();
+        const filteredEthereumNFTs = externalNFTs.filter(nft => 
+          !bridgedNFTs.has(`${nft.metadata.yours.project}-${nft.metadata.yours.collection}-${nft.token_id}`)
+        );
+        setEthereumNFTs(filteredEthereumNFTs);
+      }
+    } catch (error) {
+      console.error(`Error refreshing tokens:`, error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateBridgedNFTs = (nfts: NFT[]) => {
+    setBridgedNFTs(prev => {
+      const newBridgedNFTs = new Set(prev);
+      nfts.forEach(nft => {
+        newBridgedNFTs.add(`${nft.metadata.yours.project}-${nft.metadata.yours.collection}-${nft.token_id}`);
+      });
+      return newBridgedNFTs;
+    });
+  };
+
+  const authenticateFishingGame = async () => {
+    const fishingClient = await getFishingGameChromiaClient();
+    const { session, logout } = await createSession();
+    if (session) {
+      setSession(fishingClient.config.blockchainRid, session, logout);
+      setFishingGameSession(session);
+      await refreshActiveTabTokens(); // Refresh tokens after authentication
     }
   };
 
   const updateNFT = (updatedNFT: NFT) => {
-    setConsolidatedNFTs(prevNFTs => 
-      prevNFTs.map(nft => 
-        nft.token_id === updatedNFT.token_id ? updatedNFT : nft
-      )
-    );
+    if (updatedNFT.blockchain === 'Mega Chain') {
+      setMegaChainNFTs(prevNFTs => {
+        const existingIndex = prevNFTs.findIndex(nft => nft.token_id === updatedNFT.token_id);
+        if (existingIndex !== -1) {
+          return prevNFTs.map(nft => nft.token_id === updatedNFT.token_id ? updatedNFT : nft);
+        } else {
+          return [...prevNFTs, updatedNFT];
+        }
+      });
+      setFishingGameNFTs(prevNFTs => prevNFTs.filter(nft => nft.token_id !== updatedNFT.token_id));
+    } else if (updatedNFT.blockchain === 'Ethereum') {
+      setEthereumNFTs(prevNFTs => {
+        const existingIndex = prevNFTs.findIndex(nft => nft.token_id === updatedNFT.token_id);
+        if (existingIndex !== -1) {
+          return prevNFTs.map(nft => nft.token_id === updatedNFT.token_id ? updatedNFT : nft);
+        } else {
+          return [...prevNFTs, updatedNFT];
+        }
+      });
+      setBridgedNFTs(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(`${updatedNFT.metadata.yours.project}-${updatedNFT.metadata.yours.collection}-${updatedNFT.token_id}`);
+        return newSet;
+      });
+    } else if (updatedNFT.blockchain === 'Fishing Game') {
+      setFishingGameNFTs(prevNFTs => {
+        const existingIndex = prevNFTs.findIndex(nft => nft.token_id === updatedNFT.token_id);
+        if (existingIndex !== -1) {
+          return prevNFTs.map(nft => nft.token_id === updatedNFT.token_id ? updatedNFT : nft);
+        } else {
+          return [...prevNFTs, updatedNFT];
+        }
+      });
+      setMegaChainNFTs(prevNFTs => prevNFTs.filter(nft => nft.token_id !== updatedNFT.token_id));
+    }
+    
+    // Always update bridgedNFTs set
+    setBridgedNFTs(prev => new Set(prev).add(`${updatedNFT.metadata.yours.project}-${updatedNFT.metadata.yours.collection}-${updatedNFT.token_id}`));
+    
+    // Always remove from Ethereum NFTs
+    setEthereumNFTs(prevNFTs => prevNFTs.filter(nft => nft.token_id !== updatedNFT.token_id));
+    
+    // After updating the NFT, refresh the active tab
+    refreshActiveTabTokens();
   };
 
   const setActionLoading = (tokenId: number, action: string, isLoading: boolean) => {
@@ -114,13 +166,13 @@ function ImportNFT() {
   };
 
   const importToken = async (project: string, collection: string, tokenId: number, metadata: TokenMetadata) => {
-    if (session) {
+    if (megaChainSession) {
       setActionLoading(tokenId, 'import', true);
       try {
-        await megaYoursApi.importNFT(session, tokenId, metadata);
+        await megaYoursApi.importNFT(megaChainSession, tokenId, metadata);
         
         // Fetch the updated NFT data after import
-        const updatedNFT = await megaYoursApi.getNFT(session, project, collection, tokenId);
+        const updatedNFT = await megaYoursApi.getNFT(megaChainSession, project, collection, tokenId);
         
         if (updatedNFT) {
           updateNFT(updatedNFT);
@@ -136,15 +188,49 @@ function ImportNFT() {
   };
 
   const bridgeTokenToFishingGame = async (project: string, collection: string, tokenId: number) => {
-    if (session) {
+    if (megaChainSession && fishingGameSession) {
       setActionLoading(tokenId, 'bridgeToFishing', true);
       try {
         const fishingGameClient = await getFishingGameChromiaClient();
-        await bridgeNFT(session, project, collection, tokenId, fishingGameClient.config.blockchainRid);
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        const bridgedNFT = await fishingGameApi.getNFT(fishingGameClient, project, collection, tokenId);
+        await bridgeNFT(megaChainSession, project, collection, tokenId, fishingGameClient.config.blockchainRid);
+        
+        // Remove from Mega Chain NFTs immediately
+        setMegaChainNFTs(prevNFTs => prevNFTs.filter(nft => nft.token_id !== tokenId));
+  
+        // Retry fetching the bridged NFT with exponential backoff
+        const maxRetries = 5;
+        const baseDelay = 2000; // 2 seconds
+        let bridgedNFT = null;
+  
+        for (let i = 0; i < maxRetries; i++) {
+          await new Promise(resolve => setTimeout(resolve, baseDelay * Math.pow(2, i)));
+          
+          try {
+            bridgedNFT = await fishingGameApi.getNFT(fishingGameSession, project, collection, tokenId);
+            if (bridgedNFT) break;
+          } catch (error) {
+            console.log(`Attempt ${i + 1} failed to fetch bridged NFT. Retrying...`);
+          }
+        }
+  
         if (bridgedNFT) {
-          updateNFT({ ...bridgedNFT, token_id: tokenId }); // TODO: Remove tokenId?
+          // Update Fishing Game NFTs
+          updateNFT({ ...bridgedNFT, blockchain: 'Fishing Game' });
+        } else {
+          console.error("Failed to fetch bridged NFT data from Fishing Game after multiple attempts");
+          // Add a placeholder NFT to Fishing Game NFTs
+          const placeholderNFT: NFT = {
+            token_id: tokenId,
+            blockchain: 'Fishing Game',
+            metadata: {
+              properties: {},
+              yours: { modules: [], project, collection },
+              name: `Bridged NFT ${tokenId}`,
+              description: 'NFT data is being synced...',
+              image: '/placeholder-image.png', // Add a placeholder image
+            }
+          };
+          updateNFT(placeholderNFT);
         }
       } catch (error) {
         console.error("Error bridging token to Fishing Game:", error);
@@ -155,15 +241,25 @@ function ImportNFT() {
   };
 
   const bridgeTokenFromFishingGame = async (project: string, collection: string, tokenId: number) => {
-    if (session) {
+    if (megaChainSession && fishingGameSession) {
       setActionLoading(tokenId, 'bridgeFromFishing', true);
       try {
         const client = await getFishingGameChromiaClient();
-        await bridgeNFTBack(session, project, collection, tokenId, client.config.blockchainRid);
+        await bridgeNFTBack(fishingGameSession, project, collection, tokenId, client.config.blockchainRid);
+        
+        // Wait for a short period to ensure the bridging operation is complete
         await new Promise(resolve => setTimeout(resolve, 5000));
-        const bridgedBackNFT = await megaYoursApi.getNFT(session, project, collection, tokenId);
+        
+        // Fetch the bridged back NFT from Mega Chain
+        const bridgedBackNFT = await megaYoursApi.getNFT(megaChainSession, project, collection, tokenId);
         if (bridgedBackNFT) {
-          updateNFT(bridgedBackNFT);
+          // Update Mega Chain NFTs
+          updateNFT({ ...bridgedBackNFT, blockchain: 'Mega Chain' });
+          
+          // Remove from Fishing Game NFTs
+          setFishingGameNFTs(prevNFTs => prevNFTs.filter(nft => nft.token_id !== tokenId));
+        } else {
+          console.error("Failed to fetch bridged back NFT data from Mega Chain");
         }
       } catch (error) {
         console.error("Error bridging token from Fishing Game:", error);
@@ -241,8 +337,53 @@ function ImportNFT() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <div className="mb-6">
+        <div className="flex border-b">
+          <button
+            className={`py-2 px-4 ${activeTab === 'megaChain' ? 'border-b-2 border-blue-500' : ''}`}
+            onClick={() => setActiveTab('megaChain')}
+          >
+            Mega Chain
+          </button>
+          <button
+            className={`py-2 px-4 ${activeTab === 'ethereum' ? 'border-b-2 border-blue-500' : ''}`}
+            onClick={() => setActiveTab('ethereum')}
+          >
+            Ethereum
+          </button>
+          <button
+            className={`py-2 px-4 ${activeTab === 'fishingGame' ? 'border-b-2 border-blue-500' : ''}`}
+            onClick={() => setActiveTab('fishingGame')}
+          >
+            Fishing Game
+          </button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {consolidatedNFTs.filter((nft) => nft?.metadata?.image).map((nft, index) => (
+        {activeTab === 'megaChain' && megaChainNFTs.map((nft) => (
+          <NFTCard
+            key={`${nft.token_id}-${nft.blockchain}`}
+            imageUrl={nft.metadata.image || ""}
+            tokenName={nft.metadata.name}
+            tokenDescription={nft.metadata.description || ""}
+            metadata={nft.metadata}
+            actions={getActions(nft)}
+            blockchain={nft.blockchain}
+          />
+        ))}
+        {activeTab === 'ethereum' && ethereumNFTs.map((nft) => (
+          <NFTCard
+            key={`${nft.token_id}-${nft.blockchain}`}
+            imageUrl={nft.metadata.image || ""}
+            tokenName={nft.metadata.name}
+            tokenDescription={nft.metadata.description || ""}
+            metadata={nft.metadata}
+            actions={getActions(nft)}
+            blockchain={nft.blockchain}
+          />
+        ))}
+        {activeTab === 'fishingGame' && fishingGameNFTs.map((nft) => (
           <NFTCard
             key={`${nft.token_id}-${nft.blockchain}`}
             imageUrl={nft.metadata.image || ""}
@@ -254,6 +395,7 @@ function ImportNFT() {
           />
         ))}
       </div>
+
       <Modal isOpen={isModalOpen} onClose={closeModal}>
         {selectedNFT && (
           <div className="p-4">
