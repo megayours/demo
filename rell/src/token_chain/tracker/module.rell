@@ -15,7 +15,7 @@ function populate_metadata(yours.token, modules: set<name>): map<text, gtv>? {
   val tracker = tracker @? { token };
   if (tracker == null) return null;
 
-  metadata.put("Recent Mega Chain Visit", tracker.last_block_time.to_gtv());
+  metadata.put("Recent Token Chain Visit", tracker.last_block_time.to_gtv());
 
   return metadata;
 }

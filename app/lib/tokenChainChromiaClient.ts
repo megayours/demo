@@ -7,7 +7,7 @@ const BLOCKCHAIN_RID = process.env.NEXT_PUBLIC_MEGA_CHAIN_BLOCKCHAIN_RID;
 // Initialize the blockchain client
 let megaYoursChromiaClient: IClient;
 
-async function getMegaYoursChromiaClient() {
+async function getTokenChainChromiaClient() {
   console.log("Getting Mega Yours Chromia Client");
   console.log("NODE_URL_POOL", NODE_URL_POOL);
   console.log("BLOCKCHAIN_RID", BLOCKCHAIN_RID);
@@ -28,4 +28,4 @@ async function getMegaYoursChromiaClient() {
   return megaYoursChromiaClient;
 }
 
-export default getMegaYoursChromiaClient;
+export default getTokenChainChromiaClient;

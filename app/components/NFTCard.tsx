@@ -2,14 +2,15 @@ import Image from 'next/image';
 import React from 'react';
 import Spinner from './Spinner';
 import { Property, TokenMetadata } from '../types/nft';
+import { BLOCKCHAINS } from '../lib/constants';
 
 const getBlockchainGradient = (blockchain: string): string => {
-  switch (blockchain.toLowerCase()) {
-    case 'ethereum':
+  switch (blockchain) {
+    case BLOCKCHAINS.ETHEREUM:
       return 'from-blue-500 via-blue-400 to-blue-300';
-    case 'mega chain':
+    case BLOCKCHAINS.TOKEN_CHAIN:
       return 'from-purple-600 via-purple-500 to-purple-400';
-    case 'fishing game':
+    case BLOCKCHAINS.FISHING_GAME:
       return 'from-green-500 via-green-400 to-green-300';
     default:
       return 'from-gray-500 via-gray-400 to-gray-300';
@@ -23,7 +24,7 @@ const getAttributeColor = (attributeName: string): string => {
     case 'equipped by':
     case 'durability':
       return 'bg-green-500';
-    case 'recent mega chain visit':
+    case `recent ${BLOCKCHAINS.TOKEN_CHAIN} visit`:
       return 'bg-purple-600';
     default:
       return 'bg-gray-700';

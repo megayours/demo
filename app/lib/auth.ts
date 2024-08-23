@@ -1,6 +1,6 @@
 import { createKeyStoreInteractor, createLocalStorageLoginKeyStore, createSingleSigAuthDescriptorRegistration, createWeb3ProviderEvmKeyStore, hours, registerAccount, registrationStrategy, ttlLoginRule, Session } from "@chromia/ft4";
 import { IClient } from "postchain-client";
-import getMegaYoursChromiaClient from "./megaYoursChromiaClient";
+import getMegaYoursChromiaClient from "./tokenChainChromiaClient";
 
 declare global {
   interface Window {

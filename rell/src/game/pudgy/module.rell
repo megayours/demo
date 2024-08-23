@@ -5,4 +5,5 @@ import lib.yours;
 
 namespace ft4 {
   import lib.ft4.accounts;
+  import lib.ft4.auth;
 }

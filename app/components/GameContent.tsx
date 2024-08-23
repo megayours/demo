@@ -7,7 +7,6 @@ import { fishingGameApi } from '../api/blockchain/fishinGameApi';
 import getFishingGameChromiaClient from '../lib/fishingGameChromiaClient';
 import FishingGame from './FishingGame';
 import { Session } from '@chromia/ft4';
-import getMegaYoursChromiaClient from '../lib/megaYoursChromiaClient';
 import { useSessionContext } from './ContextProvider';
 
 export default function GameContent() {
@@ -21,9 +20,9 @@ export default function GameContent() {
   useEffect(() => {
     const fetchSession = async () => {
       console.log("Fetching session");
-      const client = await getMegaYoursChromiaClient();
-      const megaChainSession = sessions[client.config.blockchainRid.toUpperCase()];
-      setSession(megaChainSession);
+      const client = await getFishingGameChromiaClient();
+      const fishingGameSession = sessions[client.config.blockchainRid.toUpperCase()];
+      setSession(fishingGameSession);
     };
 
     fetchSession();
@@ -53,7 +52,7 @@ export default function GameContent() {
     };
 
     fetchNFT();
-  }, [searchParams]);
+  }, [session, searchParams]);
 
   if (isLoading) {
     return <div className="container mx-auto px-4 py-8 text-white">Loading...</div>;

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import NFTCard from '../components/NFTCard';
 import Spinner from '../components/Spinner';
-import { megaYoursApi } from '../api/blockchain/megaYoursApi';
+import { tokenChainApi } from '../api/blockchain/tokenChainApi';
 import { externalNFTApi } from '../api/blockchain/externalNFTApi';
 import { useSessionContext } from '../components/ContextProvider';
 import { bridgeNFT } from '../lib/crosschain';
@@ -12,7 +12,7 @@ import { fishingGameApi } from '../api/blockchain/fishinGameApi';
 import getFishingGameChromiaClient from '../lib/fishingGameChromiaClient';
 import { NFT } from '../types/nft';
 import Modal from '../components/Modal';
-import getMegaYoursChromiaClient from '../lib/megaYoursChromiaClient';
+import getTokenYoursChromiaClient from '../lib/tokenChainChromiaClient';
 import { Session } from '@chromia/ft4';
 import { BLOCKCHAINS } from '../lib/constants';
 
@@ -21,7 +21,7 @@ function ImportNFT() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadingActions, setLoadingActions] = useState<Record<string, boolean>>({});
   const { sessions } = useSessionContext();
-  const [megaChainSession, setMegaChainSession] = useState<Session | undefined>();
+  const [tokenChainSession, setTokenChainSession] = useState<Session | undefined>();
   const [fishingGameSession, setFishingGameSession] = useState<Session | undefined>();
   const router = useRouter();
   const [selectedNFT, setSelectedNFT] = useState<NFT | null>(null);
@@ -29,9 +29,9 @@ function ImportNFT() {
 
   useEffect(() => {
     const fetchSessions = async () => {
-      const megaClient = await getMegaYoursChromiaClient();
-      const megaSession = sessions[megaClient.config.blockchainRid.toUpperCase()];
-      setMegaChainSession(megaSession);
+      const tokenClient = await getTokenYoursChromiaClient();
+      const tokenSession = sessions[tokenClient.config.blockchainRid.toUpperCase()];
+      setTokenChainSession(tokenSession);
 
       const fishingClient = await getFishingGameChromiaClient();
       const fishingSession = sessions[fishingClient.config.blockchainRid.toUpperCase()];
@@ -42,34 +42,34 @@ function ImportNFT() {
   }, [sessions]);
 
   useEffect(() => {
-    if (megaChainSession && fishingGameSession) {
+    if (tokenChainSession && fishingGameSession) {
       refreshNFTs();
     }
-  }, [megaChainSession, fishingGameSession]);
+  }, [tokenChainSession, fishingGameSession]);
 
   const refreshNFTs = useCallback(async () => {
     setIsLoading(true);
     try {
-      const megaYoursNFTs = megaChainSession ? await megaYoursApi.getNFTs(megaChainSession) : [];
+      const tokenYoursNFTs = tokenChainSession ? await tokenChainApi.getNFTs(tokenChainSession) : [];
       const fishingGameNFTs = fishingGameSession ? await fishingGameApi.getNFTs(fishingGameSession) : [];
       const externalNFTs = await externalNFTApi.getNFTs();
 
-      const bridgedNfts = [...megaYoursNFTs, ...fishingGameNFTs];
+      const bridgedNfts = [...tokenYoursNFTs, ...fishingGameNFTs];
       const filteredEthereumNFTs = externalNFTs.filter(nft => 
         !bridgedNfts.some(bridgedNft => sameToken(nft, bridgedNft))
       );
 
       setNfts([
-        ...megaYoursNFTs,
+        ...tokenYoursNFTs,
+        ...fishingGameNFTs,
         ...filteredEthereumNFTs,
-        ...fishingGameNFTs
       ]);
     } catch (error) {
       console.error(`Error refreshing NFTs:`, error);
     } finally {
       setIsLoading(false);
     }
-  }, [megaChainSession, fishingGameSession]);
+  }, [tokenChainSession, fishingGameSession]);
 
   const sameToken = (nft: NFT, existingNft: NFT) => {
     return nft.metadata.yours.project === existingNft.metadata.yours.project &&
@@ -107,25 +107,25 @@ function ImportNFT() {
   const bridgeToken = async (nft: NFT, targetBlockchain: string) => {
     setActionLoading(nft.token_id, 'bridge', true);
     try {
-      if (nft.blockchain === BLOCKCHAINS.ETHEREUM && targetBlockchain === BLOCKCHAINS.MEGA_CHAIN) {
-        await megaYoursApi.importNFT(megaChainSession!, nft.token_id, nft.metadata);
-        const updatedNFT = await megaYoursApi.getNFT(megaChainSession!, nft.metadata.yours.project, nft.metadata.yours.collection, nft.token_id);
+      if (nft.blockchain === BLOCKCHAINS.ETHEREUM && targetBlockchain === BLOCKCHAINS.TOKEN_CHAIN) {
+        await tokenChainApi.importNFT(tokenChainSession!, nft.token_id, nft.metadata);
+        const updatedNFT = await tokenChainApi.getNFT(tokenChainSession!, nft.metadata.yours.project, nft.metadata.yours.collection, nft.token_id);
         if (updatedNFT) {
-          updateNFT({ ...updatedNFT, blockchain: BLOCKCHAINS.ETHEREUM }, BLOCKCHAINS.ETHEREUM, BLOCKCHAINS.MEGA_CHAIN);
+          updateNFT({ ...updatedNFT, blockchain: BLOCKCHAINS.ETHEREUM }, BLOCKCHAINS.ETHEREUM, BLOCKCHAINS.TOKEN_CHAIN);
         }
-      } else if (nft.blockchain === BLOCKCHAINS.MEGA_CHAIN && targetBlockchain === BLOCKCHAINS.FISHING_GAME) {
-        await bridgeNFT(megaChainSession!, nft.metadata.yours.project, nft.metadata.yours.collection, nft.token_id, fishingGameSession!);
+      } else if (nft.blockchain === BLOCKCHAINS.TOKEN_CHAIN && targetBlockchain === BLOCKCHAINS.FISHING_GAME) {
+        await bridgeNFT(tokenChainSession!, nft.metadata.yours.project, nft.metadata.yours.collection, nft.token_id, fishingGameSession!);
         const bridgedNFT = await fishingGameApi.getNFT(fishingGameSession!, nft.metadata.yours.project, nft.metadata.yours.collection, nft.token_id);
         console.log(`Bridged NFT: ${bridgedNFT?.token_id}@${bridgedNFT?.blockchain}`);
         if (bridgedNFT) {
-          updateNFT({ ...bridgedNFT, blockchain: BLOCKCHAINS.MEGA_CHAIN }, BLOCKCHAINS.MEGA_CHAIN, BLOCKCHAINS.FISHING_GAME);
+          updateNFT({ ...bridgedNFT, blockchain: BLOCKCHAINS.TOKEN_CHAIN }, BLOCKCHAINS.TOKEN_CHAIN, BLOCKCHAINS.FISHING_GAME);
         }
-      } else if (nft.blockchain === BLOCKCHAINS.FISHING_GAME && targetBlockchain === BLOCKCHAINS.MEGA_CHAIN) {
-        await bridgeNFT(fishingGameSession, nft.metadata.yours.project, nft.metadata.yours.collection, nft.token_id, megaChainSession!);
-        const bridgedBackNFT = await megaYoursApi.getNFT(megaChainSession!, nft.metadata.yours.project, nft.metadata.yours.collection, nft.token_id);
+      } else if (nft.blockchain === BLOCKCHAINS.FISHING_GAME && targetBlockchain === BLOCKCHAINS.TOKEN_CHAIN) {
+        await bridgeNFT(fishingGameSession, nft.metadata.yours.project, nft.metadata.yours.collection, nft.token_id, tokenChainSession!);
+        const bridgedBackNFT = await tokenChainApi.getNFT(tokenChainSession!, nft.metadata.yours.project, nft.metadata.yours.collection, nft.token_id);
         console.log(`Bridged back NFT: ${JSON.stringify(bridgedBackNFT)}`);
         if (bridgedBackNFT) {
-          updateNFT({ ...bridgedBackNFT, blockchain: BLOCKCHAINS.FISHING_GAME }, BLOCKCHAINS.FISHING_GAME, BLOCKCHAINS.MEGA_CHAIN);
+          updateNFT({ ...bridgedBackNFT, blockchain: BLOCKCHAINS.FISHING_GAME }, BLOCKCHAINS.FISHING_GAME, BLOCKCHAINS.TOKEN_CHAIN);
         }
       }
     } catch (error) {
@@ -174,10 +174,10 @@ function ImportNFT() {
     return actions;
   };
 
-  if (!megaChainSession || !fishingGameSession) {
+  if (!tokenChainSession || !fishingGameSession) {
     return (
       <div className="container mx-auto px-4 py-8 flex justify-center items-center h-screen">
-        <p>Please connect to {BLOCKCHAINS.MEGA_CHAIN} and {BLOCKCHAINS.FISHING_GAME} to view your inventory.</p>
+        <p>Please connect to {BLOCKCHAINS.TOKEN_CHAIN} and {BLOCKCHAINS.FISHING_GAME} to view your inventory.</p>
       </div>
     );
   }
@@ -218,21 +218,21 @@ function ImportNFT() {
           <div className="p-4">
             <h2 className="text-xl font-bold mb-4">Select a target blockchain</h2>
             <div className="space-y-2">
-              {[BLOCKCHAINS.MEGA_CHAIN, BLOCKCHAINS.FISHING_GAME].map((blockchain) => (
+              {[BLOCKCHAINS.TOKEN_CHAIN, BLOCKCHAINS.FISHING_GAME].map((blockchain) => (
                 <button
                   key={blockchain}
                   className={`w-full py-2 px-4 rounded transition-all duration-200 ${
-                    (selectedNFT.blockchain === BLOCKCHAINS.ETHEREUM && blockchain !== BLOCKCHAINS.MEGA_CHAIN) ||
-                    (selectedNFT.blockchain === BLOCKCHAINS.MEGA_CHAIN && blockchain !== BLOCKCHAINS.FISHING_GAME) ||
-                    (selectedNFT.blockchain === BLOCKCHAINS.FISHING_GAME && blockchain !== BLOCKCHAINS.MEGA_CHAIN)
+                    (selectedNFT.blockchain === BLOCKCHAINS.ETHEREUM && blockchain !== BLOCKCHAINS.TOKEN_CHAIN) ||
+                    (selectedNFT.blockchain === BLOCKCHAINS.TOKEN_CHAIN && blockchain !== BLOCKCHAINS.FISHING_GAME) ||
+                    (selectedNFT.blockchain === BLOCKCHAINS.FISHING_GAME && blockchain !== BLOCKCHAINS.TOKEN_CHAIN)
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed opacity-50"
                       : "bg-blue-500 text-white hover:bg-blue-600"
                   }`}
                   onClick={() => executeBridge(blockchain)}
                   disabled={
-                    (selectedNFT.blockchain === BLOCKCHAINS.ETHEREUM && blockchain !== BLOCKCHAINS.MEGA_CHAIN) ||
-                    (selectedNFT.blockchain === BLOCKCHAINS.MEGA_CHAIN && blockchain !== BLOCKCHAINS.FISHING_GAME) ||
-                    (selectedNFT.blockchain === BLOCKCHAINS.FISHING_GAME && blockchain !== BLOCKCHAINS.MEGA_CHAIN)
+                    (selectedNFT.blockchain === BLOCKCHAINS.ETHEREUM && blockchain !== BLOCKCHAINS.TOKEN_CHAIN) ||
+                    (selectedNFT.blockchain === BLOCKCHAINS.TOKEN_CHAIN && blockchain !== BLOCKCHAINS.FISHING_GAME) ||
+                    (selectedNFT.blockchain === BLOCKCHAINS.FISHING_GAME && blockchain !== BLOCKCHAINS.TOKEN_CHAIN)
                   }
                 >
                   {blockchain}

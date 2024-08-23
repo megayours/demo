@@ -1,6 +1,6 @@
 blockchains:
-  mega_chain:
-    module: mega_chain
+  token_chain:
+    module: token_chain
   game:
     module: game
 
@@ -29,8 +29,8 @@ compile:
   source: rell/src
 
 database:
-  schema: mega_chain
-  host: mega_chain_postgres
+  schema: token_chain
+  host: token_chain_postgres
 
 deployments:
   devnet1:
@@ -38,5 +38,5 @@ deployments:
     brid: x"58FE4D15AA5BDA450CC8E55F7ED63004AB1D2535A123F860D1643FD4108809E3"
     container: megayours
     chains:
-      mega_chain: x"DEB3B1D821B9585DBFF7A7D98A42C0D61271DA114392F25241D0EBD767D27A86"
+      token_chain: x"DEB3B1D821B9585DBFF7A7D98A42C0D61271DA114392F25241D0EBD767D27A86"
       game: x"5B3DAF8CC857074B61DE6D52E5B5D9E37F99412E008243681B5859C30DFE21EB"

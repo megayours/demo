@@ -4,7 +4,7 @@ import { useSessionContext } from "./ContextProvider";
 import { createSession } from "../lib/auth";
 import { useEffect, useState, useRef, useCallback } from "react";
 import Spinner from "./Spinner";
-import getMegaYoursChromiaClient from "../lib/megaYoursChromiaClient";
+import getMegaYoursChromiaClient from "../lib/tokenChainChromiaClient";
 import getFishingGameChromiaClient from "../lib/fishingGameChromiaClient";
 
 const AuthButton = () => {

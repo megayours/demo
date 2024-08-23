@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { fishingGameApi } from '../api/blockchain/fishinGameApi';
-import getFishingGameChromiaClient from '../lib/fishingGameChromiaClient';
 import NFTCard from './NFTCard';
 import FishingRodList from './FishingRodList';
 import { NFT } from '../types/nft';
@@ -147,12 +146,11 @@ const FishingGame: React.FC<{ initialNFT: NFT, session: Session }> = ({ initialN
 
   const handleRodClick = async (rodId: number) => {
     try {
-      const client = await getFishingGameChromiaClient();
       if (selectedRod === rodId) {
-        await fishingGameApi.unequipRod(client, nft.token_id);
+        await fishingGameApi.unequipRod(session, nft.token_id);
         setSelectedRod(null);
       } else {
-        await fishingGameApi.equipRod(client, nft.token_id, rodId);
+        await fishingGameApi.equipRod(session, nft.token_id, rodId);
         setSelectedRod(rodId);
       }
       await refreshNFTMetadata();
@@ -194,9 +192,8 @@ const FishingGame: React.FC<{ initialNFT: NFT, session: Session }> = ({ initialN
         const caughtFish = fishTypes[Math.floor(Math.random() * fishTypes.length)];
         setNotification(`You caught a ${caughtFish}!`);
 
-        const client = await getFishingGameChromiaClient();
         try {
-          await fishingGameApi.pullFish(client, nft.token_id);
+          await fishingGameApi.pullFish(session, nft.token_id);
           console.log("Successfully pulled fish on the blockchain");
           await refreshNFTMetadata();
         } catch (error) {

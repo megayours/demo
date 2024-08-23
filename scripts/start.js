@@ -7,7 +7,7 @@ dotenv.config();
 const image = process.env.CLI_IMAGE;
 const path = cwd();
 
-const command = `docker run --name mega_chain_blockchain -d --network mega_chain_network -p 7740:7740 -p 7750:7750 -p 9090:9090 -v ${path}:/usr/app ${image} chr node start --directory-chain-mock`;
+const command = `docker run --name token_chain_blockchain -d --network token_chain_network -p 7740:7740 -p 7750:7750 -p 9090:9090 -v ${path}:/usr/app ${image} chr node start --directory-chain-mock`;
 console.log(`>> Starting with command: ${command}`);
 
 exec(command, (err, stdout, stderr) => {

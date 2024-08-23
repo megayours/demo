@@ -2,7 +2,7 @@ import { BLOCKCHAINS } from "@/app/lib/constants";
 import { NFT, serializeTokenMetadata, TokenMetadata } from "@/app/types/nft";
 import { Session, op } from "@chromia/ft4";
 
-export const megaYoursApi = {
+export const tokenChainApi = {
   getImportedTokens: async (session: Session): Promise<NFT[]> => {
     return (await session.query<NFT[]>("importer.get_imported_tokens")).map((nft) => ({
       ...nft
@@ -14,14 +14,14 @@ export const megaYoursApi = {
     return {
       token_id: tokenId,
       metadata: metadata,
-      blockchain: BLOCKCHAINS.MEGA_CHAIN,
+      blockchain: BLOCKCHAINS.TOKEN_CHAIN,
     };
   },
 
   getNFTs: async (session: Session): Promise<NFT[]> => {
     return (await session.query<NFT[]>("importer.get_tokens", { account_id: session.account.id })).map((nft) => ({
       ...nft,
-      blockchain: BLOCKCHAINS.MEGA_CHAIN
+      blockchain: BLOCKCHAINS.TOKEN_CHAIN
     }));
   },
 

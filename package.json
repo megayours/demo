@@ -7,10 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "start:network": "docker network create mega_chain_network",
-    "start:postgres": "docker run -e POSTGRES_DB=postchain -e POSTGRES_USER=postchain -e POSTGRES_PASSWORD=postchain --network mega_chain_network -p 5432:5432 -d --name mega_chain_postgres postgres:14.1-alpine",
+    "start:network": "docker network create token_chain_network",
+    "start:postgres": "docker run -e POSTGRES_DB=postchain -e POSTGRES_USER=postchain -e POSTGRES_PASSWORD=postchain --network token_chain_network -p 5432:5432 -d --name token_chain_postgres postgres:14.1-alpine",
     "start:demo": "npm run prestart:demo && node scripts/start.js dev",
-    "stop": "docker rm -f -v mega_chain_blockchain mega_chain_postgres || true && docker network rm mega_chain_network || true",
+    "stop": "docker rm -f -v token_chain_blockchain token_chain_postgres || true && docker network rm token_chain_network || true",
     "prestart:demo": "npm run stop && npm run start:network && npm run start:postgres"
   },
   "dependencies": {
