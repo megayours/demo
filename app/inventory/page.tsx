@@ -55,9 +55,15 @@ function ImportNFT() {
       const externalNFTs = await externalNFTApi.getNFTs();
 
       const filteredEthereumNFTs = await Promise.all(externalNFTs.map(async (nft) => {
-        const tokenChainNFT = await tokenChainApi.getNFT(tokenChainSession!, nft.metadata.yours.project, nft.metadata.yours.collection, nft.token_id);
-        const fishingGameNFT = await fishingGameApi.getNFT(fishingGameSession!, nft.metadata.yours.project, nft.metadata.yours.collection, nft.token_id);
-        return (tokenChainNFT == null || fishingGameNFT == null) ? nft : null;
+        const tokenChainNFT = await tokenChainApi.getNFT(tokenChainSession!, nft.metadata.yours.project.name, nft.metadata.yours.collection, nft.token_id);
+        const fishingGameNFT = await fishingGameApi.getNFT(fishingGameSession!, nft.metadata.yours.project.name, nft.metadata.yours.collection, nft.token_id);
+        const tokenImported = tokenChainNFT || fishingGameNFT;
+        console.log(`Token ${nft.token_id} imported: ${tokenImported}`);
+        if (tokenImported) {
+          console.log(`Token ${nft.token_id} imported: ${JSON.stringify(tokenChainNFT)}`);
+          console.log(`Token ${nft.token_id} imported: ${JSON.stringify(fishingGameNFT)}`);
+        }
+        return tokenImported ? null : nft;
       }));
 
       setNfts([
@@ -73,7 +79,7 @@ function ImportNFT() {
   }, [tokenChainSession, fishingGameSession]);
 
   const sameToken = (nft: NFT, existingNft: NFT) => {
-    return nft.metadata.yours.project === existingNft.metadata.yours.project &&
+    return nft.metadata.yours.project.name === existingNft.metadata.yours.project.name &&
       nft.metadata.yours.collection === existingNft.metadata.yours.collection &&
       nft.token_id === existingNft.token_id;
   };
@@ -109,21 +115,22 @@ function ImportNFT() {
     setActionLoading(nft.token_id, 'bridge', true);
     try {
       if (nft.blockchain === BLOCKCHAINS.ETHEREUM && targetBlockchain === BLOCKCHAINS.TOKEN_CHAIN) {
+        console.log(`Importing NFT: ${JSON.stringify(nft)}`);
         await tokenChainApi.importNFT(tokenChainSession!, nft.token_id, nft.metadata);
-        const updatedNFT = await tokenChainApi.getNFT(tokenChainSession!, nft.metadata.yours.project, nft.metadata.yours.collection, nft.token_id);
+        const updatedNFT = await tokenChainApi.getNFT(tokenChainSession!, nft.metadata.yours.project.name, nft.metadata.yours.collection, nft.token_id);
         if (updatedNFT) {
           updateNFT({ ...updatedNFT, blockchain: BLOCKCHAINS.ETHEREUM }, BLOCKCHAINS.ETHEREUM, BLOCKCHAINS.TOKEN_CHAIN);
         }
       } else if (nft.blockchain === BLOCKCHAINS.TOKEN_CHAIN && targetBlockchain === BLOCKCHAINS.FISHING_GAME) {
-        await bridgeNFT(tokenChainSession!, nft.metadata.yours.project, nft.metadata.yours.collection, nft.token_id, fishingGameSession!);
-        const bridgedNFT = await fishingGameApi.getNFT(fishingGameSession!, nft.metadata.yours.project, nft.metadata.yours.collection, nft.token_id);
+        await bridgeNFT(tokenChainSession!, nft.metadata.yours.project.name, nft.metadata.yours.collection, nft.token_id, fishingGameSession!);
+        const bridgedNFT = await fishingGameApi.getNFT(fishingGameSession!, nft.metadata.yours.project.name, nft.metadata.yours.collection, nft.token_id);
         console.log(`Bridged NFT: ${bridgedNFT?.token_id}@${bridgedNFT?.blockchain}`);
         if (bridgedNFT) {
           updateNFT({ ...bridgedNFT, blockchain: BLOCKCHAINS.TOKEN_CHAIN }, BLOCKCHAINS.TOKEN_CHAIN, BLOCKCHAINS.FISHING_GAME);
         }
       } else if (nft.blockchain === BLOCKCHAINS.FISHING_GAME && targetBlockchain === BLOCKCHAINS.TOKEN_CHAIN) {
-        await bridgeNFT(fishingGameSession, nft.metadata.yours.project, nft.metadata.yours.collection, nft.token_id, tokenChainSession!);
-        const bridgedBackNFT = await tokenChainApi.getNFT(tokenChainSession!, nft.metadata.yours.project, nft.metadata.yours.collection, nft.token_id);
+        await bridgeNFT(fishingGameSession, nft.metadata.yours.project.name, nft.metadata.yours.collection, nft.token_id, tokenChainSession!);
+        const bridgedBackNFT = await tokenChainApi.getNFT(tokenChainSession!, nft.metadata.yours.project.name, nft.metadata.yours.collection, nft.token_id);
         console.log(`Bridged back NFT: ${JSON.stringify(bridgedBackNFT)}`);
         if (bridgedBackNFT) {
           updateNFT({ ...bridgedBackNFT, blockchain: BLOCKCHAINS.FISHING_GAME }, BLOCKCHAINS.FISHING_GAME, BLOCKCHAINS.TOKEN_CHAIN);

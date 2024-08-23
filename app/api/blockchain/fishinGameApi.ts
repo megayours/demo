@@ -16,8 +16,8 @@ export const fishingGameApi = {
 
   getNFT: async (session: Session, project: string, collection: string, tokenId: number): Promise<NFT | undefined> => {
     const metadata = await session.query<TokenMetadata>("yours.metadata", { project, collection, token_id: tokenId });
-    console.log(`Metadata: ${metadata}`);
     if (metadata == null) return undefined;
+
     return {
       token_id: tokenId,
       metadata,

@@ -13,8 +13,6 @@ export async function bridgeNFT(session: Session | undefined, project: string, c
         .add(op(
           "yours.init_transfer",
           targetSession.account.id,
-          metadata.yours.project,
-          metadata.yours.collection,
           tokenId,
           1,
           serializeTokenMetadata(metadata)

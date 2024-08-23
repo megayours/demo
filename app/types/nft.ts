@@ -1,10 +1,16 @@
 import { RawGtv } from "postchain-client";
+import { ADMIN_ID } from "../lib/constants";
 
 export type YoursMetadata = {
   modules: string[];
-  project: string;
+  project: Project;
   collection: string;
 };
+
+export type Project = {
+  name: string;
+  owner_id: Buffer;
+}
 
 export type Property = {
   name?: string;
@@ -51,7 +57,7 @@ export function serializeTokenMetadata(metadata: TokenMetadata): any[] {
   console.log(`Serializing metadata: ${JSON.stringify(metadata)}`);
   const yours: any[] = [
     metadata.yours.modules,
-    metadata.yours.project,
+    [metadata.yours.project.name, metadata.yours.project.owner_id],
     metadata.yours.collection,
   ];
 
@@ -73,7 +79,10 @@ export function convertERC721Metadata(metadata: ERC721Metadata, project: string,
     properties: Object.fromEntries(metadata.attributes.map(attr => [attr.trait_type, attr.value])),
     yours: {
       modules: [],
-      project: project,
+      project: {
+        name: project,
+        owner_id: Buffer.from(ADMIN_ID, 'hex'),
+      },
       collection: collection,
     },
     description: metadata.description,
