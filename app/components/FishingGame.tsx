@@ -23,7 +23,7 @@ const FishingGame: React.FC<{ initialNFT: NFT, session: Session }> = ({ initialN
       try {
         const rods = await fishingGameApi.getPudgyRods(session);
         const rodNFTs = await Promise.all(
-          rods.map(rod => fishingGameApi.getNFT(session, initialNFT.metadata.yours.project, 'Pudgy Rods', rod.id))
+          rods.map(rod => fishingGameApi.getNFT(session, initialNFT.metadata.yours.project.name, 'Pudgy Rods', rod.id))
         );
         const filteredRods = rodNFTs.filter((rod): rod is NFT => rod !== undefined);
         setFishingRods(filteredRods);
@@ -129,14 +129,14 @@ const FishingGame: React.FC<{ initialNFT: NFT, session: Session }> = ({ initialN
   const refreshNFTMetadata = async () => {
     try {
       if (!session) return;
-      const updatedNFT = await fishingGameApi.getNFT(session, nft.metadata.yours.project, nft.metadata.yours.collection, nft.token_id);
+      const updatedNFT = await fishingGameApi.getNFT(session, nft.metadata.yours.project.name, nft.metadata.yours.collection, nft.token_id);
       if (updatedNFT) {
         setNFT(updatedNFT);
       }
 
       // Refresh fishing rod metadata
       const updatedRods = await Promise.all(
-        fishingRods.map(rod => fishingGameApi.getNFT(session, nft.metadata.yours.project, 'Pudgy Rods', rod.token_id))
+        fishingRods.map(rod => fishingGameApi.getNFT(session, nft.metadata.yours.project.name, 'Pudgy Rods', rod.token_id))
       );
       setFishingRods(updatedRods.filter((rod): rod is NFT => rod !== undefined));
     } catch (error) {
