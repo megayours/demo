@@ -54,15 +54,16 @@ function ImportNFT() {
       const fishingGameNFTs = fishingGameSession ? await fishingGameApi.getNFTs(fishingGameSession) : [];
       const externalNFTs = await externalNFTApi.getNFTs();
 
-      const bridgedNfts = [...tokenYoursNFTs, ...fishingGameNFTs];
-      const filteredEthereumNFTs = externalNFTs.filter(nft => 
-        !bridgedNfts.some(bridgedNft => sameToken(nft, bridgedNft))
-      );
+      const filteredEthereumNFTs = await Promise.all(externalNFTs.map(async (nft) => {
+        const tokenChainNFT = await tokenChainApi.getNFT(tokenChainSession!, nft.metadata.yours.project, nft.metadata.yours.collection, nft.token_id);
+        const fishingGameNFT = await fishingGameApi.getNFT(fishingGameSession!, nft.metadata.yours.project, nft.metadata.yours.collection, nft.token_id);
+        return (tokenChainNFT == null || fishingGameNFT == null) ? nft : null;
+      }));
 
       setNfts([
         ...tokenYoursNFTs,
         ...fishingGameNFTs,
-        ...filteredEthereumNFTs,
+        ...filteredEthereumNFTs.filter((nft): nft is NFT => nft !== null),
       ]);
     } catch (error) {
       console.error(`Error refreshing NFTs:`, error);
