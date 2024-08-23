@@ -11,10 +11,19 @@ const AuthButton = () => {
   const { sessions, setSession, logout } = useSessionContext();
   const [buttonState, setButtonState] = useState<'login' | 'logout' | 'loading' | 'no-wallet'>('loading');
   const loginAttemptedRef = useRef(true);
+  const [accountId, setAccountId] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log("Effect triggered - AccountId changed:", accountId);
+  }, [accountId]);
+  useEffect(() => {
     console.log("Effect triggered - Sessions changed:", sessions);
-    setButtonState(Object.keys(sessions).length > 1 ? 'logout' : 'login');
+    const nrOfSessions = Object.keys(sessions).length;
+    if (nrOfSessions === 0) {
+      setButtonState('login');
+    } else if (nrOfSessions === 2) {
+      setButtonState('logout');
+    }
   }, [sessions]);
 
   const handleLogin = async () => {
@@ -27,6 +36,11 @@ const AuthButton = () => {
       if (megaSession) {
         console.log("New Mega Session created:", megaSession);
         setSession(megaSession.blockchainRid.toString("hex").toUpperCase(), megaSession, megaLogoutFn);
+        const accountId = megaSession.account.id.toString("hex");
+        const truncatedAccountId = accountId ? `${accountId.slice(0, 3)}..${accountId.slice(-3)}` : null;
+        if (truncatedAccountId) {
+          setAccountId(truncatedAccountId);
+        }
       } else {
         setButtonState('no-wallet');
       }
@@ -90,7 +104,7 @@ const AuthButton = () => {
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
           </svg>
-          <span>Disconnect Wallet</span>
+          <span>Disconnect {accountId}</span>
         </>
       )
     },

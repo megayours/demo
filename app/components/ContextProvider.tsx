@@ -46,6 +46,7 @@ export function ContextProvider({ children }: { children: ReactNode }) {
   const handleLogout = useCallback(async (blockchainRid: string) => {
     console.log(`Handle logout for blockchainRid: ${blockchainRid}`);
     try {
+      console.log("Logout functions available:", Object.keys(logoutFunctionsRef.current));
       const logoutFn = logoutFunctionsRef.current[blockchainRid.toUpperCase()];
       if (logoutFn) {
         const result = logoutFn();
