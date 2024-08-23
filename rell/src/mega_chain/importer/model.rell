@@ -1,0 +1,3 @@
+entity imported_token {
+  key chain: name, contract: text, token_id: integer;
+}

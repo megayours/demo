@@ -1,4 +1,5 @@
 import { createKeyStoreInteractor, createLocalStorageLoginKeyStore, createSingleSigAuthDescriptorRegistration, createWeb3ProviderEvmKeyStore, hours, registerAccount, registrationStrategy, ttlLoginRule, Session } from "@chromia/ft4";
+import { IClient } from "postchain-client";
 import getMegaYoursChromiaClient from "./megaYoursChromiaClient";
 
 declare global {
@@ -7,13 +8,12 @@ declare global {
   }
 }
 
-export async function createSession(): Promise<{ session: Session | undefined, logout: () => void }> {
+export async function createSession(client: IClient): Promise<{ session: Session | undefined, logout: () => void }> {
   if (!window.ethereum) {
     console.error(`Ethereum not found on window`);
     return { session: undefined, logout: () => { } };
   }
 
-  const client = await getMegaYoursChromiaClient();
   const evmKeyStore = await createWeb3ProviderEvmKeyStore(window.ethereum);
   const evmKeyStoreInteractor = createKeyStoreInteractor(
     client,

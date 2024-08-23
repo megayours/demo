@@ -1,3 +1,7 @@
-query get_tokens() {
-  return yours.token @* {} ( token_id = $.id, metadata = yours.get_metadata($) );
+query get_tokens(account_id: byte_array) {
+  return yours.token_balance @* { .account.id == account_id} ( token_id = $.token.id, metadata = yours.get_metadata($.token) );
+}
+
+query get_imported_tokens() {
+  return imported_token @* { } ( chain = $.chain, contract = $.contract, token_id = $.token_id );
 }
