@@ -48,6 +48,7 @@ export type ERC721Attribute = {
 }
 
 export function serializeTokenMetadata(metadata: TokenMetadata): any[] {
+  console.log(`Serializing metadata: ${JSON.stringify(metadata)}`);
   const yours: any[] = [
     metadata.yours.modules,
     metadata.yours.project,

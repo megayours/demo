@@ -5,6 +5,7 @@ import { createSession } from "../lib/auth";
 import { useEffect, useState, useRef, useCallback } from "react";
 import Spinner from "./Spinner";
 import getMegaYoursChromiaClient from "../lib/megaYoursChromiaClient";
+import getFishingGameChromiaClient from "../lib/fishingGameChromiaClient";
 
 const AuthButton = () => {
   const { sessions, setSession, logout } = useSessionContext();
@@ -13,20 +14,27 @@ const AuthButton = () => {
 
   useEffect(() => {
     console.log("Effect triggered - Sessions changed:", sessions);
-    setButtonState(Object.keys(sessions).length > 0 ? 'logout' : 'login');
+    setButtonState(Object.keys(sessions).length > 1 ? 'logout' : 'login');
   }, [sessions]);
 
   const handleLogin = async () => {
     console.log("Login button clicked");
     if (buttonState === 'loading') return;
-    const client = await getMegaYoursChromiaClient();
 
     setButtonState('loading');
     try {
-      const { session: newSession, logout: logoutFn } = await createSession();
-      if (newSession) {
-        console.log("New session created:", newSession);
-        setSession(client.config.blockchainRid.toUpperCase(), newSession, logoutFn);
+      const { session: megaSession, logout: megaLogoutFn } = await createSession(await getMegaYoursChromiaClient());
+      if (megaSession) {
+        console.log("New Mega Session created:", megaSession);
+        setSession(megaSession.blockchainRid.toString("hex").toUpperCase(), megaSession, megaLogoutFn);
+      } else {
+        setButtonState('no-wallet');
+      }
+
+      const { session: fishingSession, logout: fishingLogoutFn } = await createSession(await getFishingGameChromiaClient());
+      if (fishingSession) {
+        console.log("New Fishing Session created:", fishingSession);
+        setSession(fishingSession.blockchainRid.toString("hex").toUpperCase(), fishingSession, fishingLogoutFn);
       } else {
         setButtonState('no-wallet');
       }
@@ -40,11 +48,12 @@ const AuthButton = () => {
     console.log("Logout button clicked");
     if (buttonState === 'loading') return;
 
-    const client = await getMegaYoursChromiaClient();
-    setButtonState('loading');
     try {
-      console.log("Attempting to logout...");
-      await logout(client.config.blockchainRid.toUpperCase());
+      setButtonState('loading');
+      for (const session of Object.values(sessions)) {
+        if (!session) continue;
+        await logout(session.blockchainRid.toString("hex").toUpperCase());
+      }
       console.log("Logout successful");
     } catch (error) {
       console.error("Logout failed:", error);

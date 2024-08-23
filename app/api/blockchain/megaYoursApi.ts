@@ -1,7 +1,6 @@
+import { BLOCKCHAINS } from "@/app/lib/constants";
 import { NFT, serializeTokenMetadata, TokenMetadata } from "@/app/types/nft";
 import { Session, op } from "@chromia/ft4";
-
-const chainName = "Mega Chain";
 
 export const megaYoursApi = {
   getImportedTokens: async (session: Session): Promise<NFT[]> => {
@@ -15,22 +14,22 @@ export const megaYoursApi = {
     return {
       token_id: tokenId,
       metadata: metadata,
-      blockchain: chainName,
+      blockchain: BLOCKCHAINS.MEGA_CHAIN,
     };
   },
 
   getNFTs: async (session: Session): Promise<NFT[]> => {
     return (await session.query<NFT[]>("importer.get_tokens", { account_id: session.account.id })).map((nft) => ({
       ...nft,
-      blockchain: chainName
+      blockchain: BLOCKCHAINS.MEGA_CHAIN
     }));
   },
 
   importNFT: async (session: Session, tokenId: number, metadata: TokenMetadata): Promise<void> => {
     if (metadata.yours.collection === "Pudgy Rods") {
-      await session.call(op("importer.import_token", serializeTokenMetadata(metadata), "Ethereum", "0xROD", tokenId));
+      await session.call(op("importer.import_token", serializeTokenMetadata(metadata), BLOCKCHAINS.ETHEREUM, "0xROD", tokenId));
     } else {
-      await session.call(op("importer.import_token", serializeTokenMetadata(metadata), "Ethereum", "0xPUDGY", tokenId));
+      await session.call(op("importer.import_token", serializeTokenMetadata(metadata), BLOCKCHAINS.ETHEREUM, "0xPUDGY", tokenId));
     }
   },
 };
