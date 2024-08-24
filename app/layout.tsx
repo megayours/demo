@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import { ContextProvider } from "@/app/components/ContextProvider";
-import Navigation from "./components/navigation";
+import type { Metadata } from 'next';
+import './globals.css';
+import { ContextProvider } from '@/app/components/ContextProvider';
+import Navigation from './components/navigation';
 
 export const metadata: Metadata = {
-  title: "Mega Yours - Your NFT Universe",
-  description: "Explore, create, and trade NFTs in the Mega Yours universe",
+  title: 'MegaYours - Your NFT Universe',
+  description: 'Explore, create, and trade NFTs in the MegaYours universe',
   metadataBase: new URL('https://megayours.github.io/demo'),
 };
 
@@ -21,7 +21,7 @@ export default function RootLayout({
           <Navigation />
           <main className="flex-grow">{children}</main>
           <footer className="bg-[var(--color-background)] text-white text-center py-4">
-            <p>&copy; 2024 Mega Yours. All rights reserved.</p>
+            <p>&copy; 2024 MegaYours. All rights reserved.</p>
           </footer>
         </ContextProvider>
       </body>

@@ -2,6 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -11,7 +12,13 @@
     "start:postgres": "docker run -e POSTGRES_DB=postchain -e POSTGRES_USER=postchain -e POSTGRES_PASSWORD=postchain --network token_chain_network -p 5432:5432 -d --name token_chain_postgres postgres:14.1-alpine",
     "start:demo": "npm run prestart:demo && node scripts/start.js dev",
     "stop": "docker rm -f -v token_chain_blockchain token_chain_postgres || true && docker network rm token_chain_network || true",
-    "prestart:demo": "npm run stop && npm run start:network && npm run start:postgres"
+    "prestart:demo": "npm run stop && npm run start:network && npm run start:postgres",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*": "prettier --ignore-unknown --write",
+    "*.rell": "chr code format && chr code lint",
+    "*.{js,ts,tsx}": "eslint --fix"
   },
   "dependencies": {
     "@chromia/ft4": "^0.8.0",
@@ -20,15 +27,19 @@
     "react-dom": "^18"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.4.0",
+    "@commitlint/config-conventional": "^19.2.2",
     "@types/lodash": "^4.17.7",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "dotenv": "^16.4.5",
-    "eslint": "^8",
+    "eslint": "^8.57.0",
     "eslint-config-next": "14.2.4",
     "postcss": "^8",
+    "prettier": "^3.3.3",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "typescript-eslint": "^8.2.0"
   }
 }
