@@ -1,23 +1,25 @@
-"use client"
+'use client';
 
-import { useSessionContext } from "./ContextProvider";
-import { createSession } from "../lib/auth";
-import { useEffect, useState, useRef, useCallback } from "react";
-import Spinner from "./Spinner";
-import getMegaYoursChromiaClient from "../lib/tokenChainChromiaClient";
-import getFishingGameChromiaClient from "../lib/fishingGameChromiaClient";
+import { useSessionContext } from './ContextProvider';
+import { createSession } from '../lib/auth';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import Spinner from './Spinner';
+import getMegaYoursChromiaClient from '../lib/tokenChainChromiaClient';
+import getFishingGameChromiaClient from '../lib/fishingGameChromiaClient';
 
 const AuthButton = () => {
   const { sessions, setSession, logout } = useSessionContext();
-  const [buttonState, setButtonState] = useState<'login' | 'logout' | 'loading' | 'no-wallet'>('loading');
+  const [buttonState, setButtonState] = useState<
+    'login' | 'logout' | 'loading' | 'no-wallet'
+  >('loading');
   const loginAttemptedRef = useRef(true);
   const [accountId, setAccountId] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("Effect triggered - AccountId changed:", accountId);
+    console.log('Effect triggered - AccountId changed:', accountId);
   }, [accountId]);
   useEffect(() => {
-    console.log("Effect triggered - Sessions changed:", sessions);
+    console.log('Effect triggered - Sessions changed:', sessions);
     const nrOfSessions = Object.keys(sessions).length;
     if (nrOfSessions === 0) {
       setButtonState('login');
@@ -27,17 +29,24 @@ const AuthButton = () => {
   }, [sessions]);
 
   const handleLogin = async () => {
-    console.log("Login button clicked");
+    console.log('Login button clicked');
     if (buttonState === 'loading') return;
 
     setButtonState('loading');
     try {
-      const { session: megaSession, logout: megaLogoutFn } = await createSession(await getMegaYoursChromiaClient());
+      const { session: megaSession, logout: megaLogoutFn } =
+        await createSession(await getMegaYoursChromiaClient());
       if (megaSession) {
-        console.log("New Mega Session created:", megaSession);
-        setSession(megaSession.blockchainRid.toString("hex").toUpperCase(), megaSession, megaLogoutFn);
-        const accountId = megaSession.account.id.toString("hex");
-        const truncatedAccountId = accountId ? `${accountId.slice(0, 3)}..${accountId.slice(-3)}` : null;
+        console.log('New Mega Session created:', megaSession);
+        setSession(
+          megaSession.blockchainRid.toString('hex').toUpperCase(),
+          megaSession,
+          megaLogoutFn
+        );
+        const accountId = megaSession.account.id.toString('hex');
+        const truncatedAccountId = accountId
+          ? `${accountId.slice(0, 3)}..${accountId.slice(-3)}`
+          : null;
         if (truncatedAccountId) {
           setAccountId(truncatedAccountId);
         }
@@ -45,37 +54,42 @@ const AuthButton = () => {
         setButtonState('no-wallet');
       }
 
-      const { session: fishingSession, logout: fishingLogoutFn } = await createSession(await getFishingGameChromiaClient());
+      const { session: fishingSession, logout: fishingLogoutFn } =
+        await createSession(await getFishingGameChromiaClient());
       if (fishingSession) {
-        console.log("New Fishing Session created:", fishingSession);
-        setSession(fishingSession.blockchainRid.toString("hex").toUpperCase(), fishingSession, fishingLogoutFn);
+        console.log('New Fishing Session created:', fishingSession);
+        setSession(
+          fishingSession.blockchainRid.toString('hex').toUpperCase(),
+          fishingSession,
+          fishingLogoutFn
+        );
       } else {
         setButtonState('no-wallet');
       }
     } catch (error) {
-      console.error("Failed to create session:", error);
+      console.error('Failed to create session:', error);
       setButtonState('login');
     }
   };
 
   const handleLogout = useCallback(async () => {
-    console.log("Logout button clicked");
+    console.log('Logout button clicked');
     if (buttonState === 'loading') return;
 
     try {
       setButtonState('loading');
       for (const session of Object.values(sessions)) {
         if (!session) continue;
-        await logout(session.blockchainRid.toString("hex").toUpperCase());
+        await logout(session.blockchainRid.toString('hex').toUpperCase());
       }
-      console.log("Logout successful");
+      console.log('Logout successful');
     } catch (error) {
-      console.error("Logout failed:", error);
+      console.error('Logout failed:', error);
       setButtonState('logout');
     } finally {
       loginAttemptedRef.current = false;
     }
-  }, [logout, buttonState]);
+  }, [sessions, logout, buttonState]);
 
   const buttonClass = `
     flex items-center justify-center w-50 px-4 py-2 rounded-full text-white font-semibold
@@ -89,46 +103,72 @@ const AuthButton = () => {
       onClick: handleLogin,
       content: (
         <>
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+          <svg
+            className="w-5 h-5 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+            ></path>
           </svg>
           <span>Connect Wallet</span>
         </>
-      )
+      ),
     },
     logout: {
       class: `${buttonClass} bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 hover:from-red-600 hover:via-orange-600 hover:to-yellow-600 active:from-red-700 active:via-orange-700 active:to-yellow-700`,
       onClick: handleLogout,
       content: (
         <>
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+          <svg
+            className="w-5 h-5 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+            ></path>
           </svg>
           <span>Disconnect {accountId}</span>
         </>
-      )
+      ),
     },
     loading: {
       class: `${buttonClass} bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 cursor-not-allowed`,
-      onClick: () => { console.log("Loading button clicked"); },
-      content: <Spinner size="medium" />
+      onClick: () => {
+        console.log('Loading button clicked');
+      },
+      content: <Spinner size="medium" />,
     },
     'no-wallet': {
       class: `${buttonClass} bg-gray-500 cursor-not-allowed`,
-      onClick: () => { console.log("No wallet button clicked"); },
-      content: <span>MetaMask Missing</span>
-    }
+      onClick: () => {
+        console.log('No wallet button clicked');
+      },
+      content: <span>MetaMask Missing</span>,
+    },
   };
 
   const currentButton = buttonConfig[buttonState];
 
-  console.log("Rendering button with state:", buttonState);
+  console.log('Rendering button with state:', buttonState);
 
   return (
     <button
       className={currentButton.class}
       onClick={() => {
-        console.log("Button clicked, current state:", buttonState);
+        console.log('Button clicked, current state:', buttonState);
         currentButton.onClick();
       }}
       disabled={buttonState === 'loading'}

@@ -10,8 +10,6 @@ export default tseslint.config(
       sourceType: 'module',
     },
     files: ['**/*.ts', '**/*.tsx'],
-    rules: {
-      // Add your custom rules here
-    },
+    rules: {},
   }
 );

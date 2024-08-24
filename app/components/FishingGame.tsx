@@ -6,7 +6,10 @@ import FishingRodList from './FishingRodList';
 import { NFT } from '../types/nft';
 import { Session } from '@chromia/ft4';
 
-const FishingGame: React.FC<{ initialNFT: NFT, session: Session }> = ({ initialNFT, session }) => {
+const FishingGame: React.FC<{ initialNFT: NFT; session: Session }> = ({
+  initialNFT,
+  session,
+}) => {
   const [nft, setNFT] = useState<NFT>(initialNFT);
   const [fishingRods, setFishingRods] = useState<NFT[]>([]);
   const [selectedRod, setSelectedRod] = useState<number | null>(null);
@@ -15,7 +18,11 @@ const FishingGame: React.FC<{ initialNFT: NFT, session: Session }> = ({ initialN
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isFishing, setIsFishing] = useState(false);
-  const [splashEffect, setSplashEffect] = useState({ x: 0, y: 0, active: false });
+  const [splashEffect, setSplashEffect] = useState({
+    x: 0,
+    y: 0,
+    active: false,
+  });
 
   useEffect(() => {
     const fetchFishingRods = async () => {
@@ -23,28 +30,39 @@ const FishingGame: React.FC<{ initialNFT: NFT, session: Session }> = ({ initialN
       try {
         const rods = await fishingGameApi.getPudgyRods(session);
         const rodNFTs = await Promise.all(
-          rods.map(rod => fishingGameApi.getNFT(session, initialNFT.metadata.yours.project.name, 'Pudgy Rods', rod.id))
+          rods.map((rod) =>
+            fishingGameApi.getNFT(
+              session,
+              initialNFT.metadata.yours.project.name,
+              'Pudgy Rods',
+              rod.id
+            )
+          )
         );
-        const filteredRods = rodNFTs.filter((rod): rod is NFT => rod !== undefined);
+        const filteredRods = rodNFTs.filter(
+          (rod): rod is NFT => rod !== undefined
+        );
         setFishingRods(filteredRods);
 
         // Check if a rod is already equipped
-        const equippedRodAttr = nft.metadata.properties["Fishing Rod"];
+        const equippedRodAttr = nft.metadata.properties['Fishing Rod'];
         if (equippedRodAttr) {
-          const equippedRod = filteredRods.find(rod => rod.metadata.name === equippedRodAttr);
+          const equippedRod = filteredRods.find(
+            (rod) => rod.metadata.name === equippedRodAttr
+          );
           if (equippedRod) {
             setSelectedRod(equippedRod.token_id);
           }
         }
       } catch (error) {
-        console.error("Error fetching Fishing Rods:", error);
+        console.error('Error fetching Fishing Rods:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchFishingRods();
-  }, [nft.metadata.properties]);
+  }, [session, initialNFT, nft.metadata.properties]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -78,7 +96,8 @@ const FishingGame: React.FC<{ initialNFT: NFT, session: Session }> = ({ initialN
         for (let x = 0; x < canvas.width; x += 20) {
           ctx.lineTo(
             x,
-            canvas.height * (0.6 + i * 0.05) + Math.sin(x * 0.03 + Date.now() * 0.002) * 5
+            canvas.height * (0.6 + i * 0.05) +
+              Math.sin(x * 0.03 + Date.now() * 0.002) * 5
           );
         }
         ctx.stroke();
@@ -129,18 +148,32 @@ const FishingGame: React.FC<{ initialNFT: NFT, session: Session }> = ({ initialN
   const refreshNFTMetadata = async () => {
     try {
       if (!session) return;
-      const updatedNFT = await fishingGameApi.getNFT(session, nft.metadata.yours.project.name, nft.metadata.yours.collection, nft.token_id);
+      const updatedNFT = await fishingGameApi.getNFT(
+        session,
+        nft.metadata.yours.project.name,
+        nft.metadata.yours.collection,
+        nft.token_id
+      );
       if (updatedNFT) {
         setNFT(updatedNFT);
       }
 
       // Refresh fishing rod metadata
       const updatedRods = await Promise.all(
-        fishingRods.map(rod => fishingGameApi.getNFT(session, nft.metadata.yours.project.name, 'Pudgy Rods', rod.token_id))
+        fishingRods.map((rod) =>
+          fishingGameApi.getNFT(
+            session,
+            nft.metadata.yours.project.name,
+            'Pudgy Rods',
+            rod.token_id
+          )
+        )
       );
-      setFishingRods(updatedRods.filter((rod): rod is NFT => rod !== undefined));
+      setFishingRods(
+        updatedRods.filter((rod): rod is NFT => rod !== undefined)
+      );
     } catch (error) {
-      console.error("Error refreshing NFT metadata:", error);
+      console.error('Error refreshing NFT metadata:', error);
     }
   };
 
@@ -155,7 +188,7 @@ const FishingGame: React.FC<{ initialNFT: NFT, session: Session }> = ({ initialN
       }
       await refreshNFTMetadata();
     } catch (error) {
-      console.error("Error equipping/unequipping rod:", error);
+      console.error('Error equipping/unequipping rod:', error);
     }
   };
 
@@ -189,19 +222,22 @@ const FishingGame: React.FC<{ initialNFT: NFT, session: Session }> = ({ initialN
       const catchChance = Math.random();
       if (catchChance > 0.5) {
         const fishTypes = ['Trout', 'Salmon', 'Bass', 'Catfish', 'Tuna'];
-        const caughtFish = fishTypes[Math.floor(Math.random() * fishTypes.length)];
+        const caughtFish =
+          fishTypes[Math.floor(Math.random() * fishTypes.length)];
         setNotification(`You caught a ${caughtFish}!`);
 
         try {
           await fishingGameApi.pullFish(session, nft.token_id);
-          console.log("Successfully pulled fish on the blockchain");
+          console.log('Successfully pulled fish on the blockchain');
           await refreshNFTMetadata();
         } catch (error) {
-          console.error("Error pulling fish:", error);
-          setNotification(`Caught a ${caughtFish}, but failed to record it. Please try again.`);
+          console.error('Error pulling fish:', error);
+          setNotification(
+            `Caught a ${caughtFish}, but failed to record it. Please try again.`
+          );
         }
       } else {
-        setNotification("No luck this time. Try again!");
+        setNotification('No luck this time. Try again!');
       }
       setIsFishing(false);
     }, 2000);
@@ -218,9 +254,16 @@ const FishingGame: React.FC<{ initialNFT: NFT, session: Session }> = ({ initialN
   if (fishingRods.length === 0) {
     return (
       <div className="text-center p-4 bg-[var(--color-surface)] rounded-lg">
-        <p className="text-lg font-semibold mb-2">You don&apos;t have any Fishing Rods!</p>
-        <p className="mb-4">Visit the Inventory to bridge your Fishing Rods and start fishing.</p>
-        <Link href="/inventory" className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors">
+        <p className="text-lg font-semibold mb-2">
+          You don&apos;t have any Fishing Rods!
+        </p>
+        <p className="mb-4">
+          Visit the Inventory to bridge your Fishing Rods and start fishing.
+        </p>
+        <Link
+          href="/inventory"
+          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors"
+        >
           Go to Inventory
         </Link>
       </div>
@@ -258,9 +301,9 @@ const FishingGame: React.FC<{ initialNFT: NFT, session: Session }> = ({ initialN
       <div className="md:col-span-1 order-2 flex flex-col">
         <div className="mb-4">
           <NFTCard
-            imageUrl={nft.metadata.image ?? ""}
+            imageUrl={nft.metadata.image ?? ''}
             tokenName={nft.metadata.name}
-            tokenDescription={nft.metadata.description ?? ""}
+            tokenDescription={nft.metadata.description ?? ''}
             metadata={nft.metadata}
             blockchain={nft.blockchain}
             isGamePage={true}
