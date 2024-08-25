@@ -41,14 +41,26 @@ interface NFTCardProps {
   actions?: { label: string; onClick: () => void; loading: boolean }[];
 }
 
-const NFTCard: React.FC<NFTCardProps> = ({ imageUrl, tokenName, tokenDescription, metadata, blockchain, isGamePage = false, actions = [] }) => {
-  const filteredProperties: [string, string | number | boolean | Property][] = isGamePage
-    ? Object.entries(metadata.properties).filter(([key]) => 
-        ['Fishes Caught', 'Fishing Rod'].includes(key)
-      )
-    : Object.entries(metadata.properties);
+const NFTCard: React.FC<NFTCardProps> = ({
+  imageUrl,
+  tokenName,
+  tokenDescription,
+  metadata,
+  blockchain,
+  isGamePage = false,
+  actions = [],
+}) => {
+  const filteredProperties: [string, string | number | boolean | Property][] =
+    isGamePage
+      ? Object.entries(metadata.properties).filter(([key]) =>
+          ['Fishes Caught', 'Fishing Rod'].includes(key)
+        )
+      : Object.entries(metadata.properties);
 
-  const renderAttribute = (attribute: [string, string | number | boolean | Property], index: number) => (
+  const renderAttribute = (
+    attribute: [string, string | number | boolean | Property],
+    index: number
+  ) => (
     <div
       key={`${attribute[0]}-${index}`}
       className={`${getAttributeColor(attribute[0])} rounded-lg p-2 text-xs`}
@@ -75,18 +87,45 @@ const NFTCard: React.FC<NFTCardProps> = ({ imageUrl, tokenName, tokenDescription
       </div>
       <div className="p-4">
         <h2 className="text-xl font-semibold text-white mb-2">{tokenName}</h2>
-        <div className="items-center gap-2 mb-3">
-          <p className="text-sm font-semibold text-gray-200 whitespace-nowrap">Token & Metadata Source</p>
-          <div className={`inline-flex bg-gradient-to-r ${getBlockchainGradient(blockchain)} text-white text-sm font-medium px-3 py-1 rounded-full mt-2`}>
+
+        {(metadata.yours?.project?.name || metadata.yours?.collection) && (
+          <div className="rounded-lg mb-4">
+            {metadata.yours.project?.name && (
+              <p className="text-sm text-gray-300 mb-1">
+                <span className="font-semibold text-[var(--color-secondary)]">
+                  Project:
+                </span>{' '}
+                {metadata.yours.project.name}
+              </p>
+            )}
+            {metadata.yours?.collection && (
+              <p className="text-sm text-gray-300">
+                <span className="font-semibold text-[var(--color-secondary)]">
+                  Collection:
+                </span>{' '}
+                {metadata.yours.collection}
+              </p>
+            )}
+          </div>
+        )}
+
+        <div className="flex flex-col mb-3">
+          <div
+            className={`inline-flex self-start bg-gradient-to-r ${getBlockchainGradient(blockchain)} text-white text-sm font-medium px-3 py-1 rounded-full`}
+          >
             {blockchain}
           </div>
         </div>
-        <p className="text-gray-300 text-sm line-clamp-3 mb-4">{tokenDescription}</p>
+        <p className="text-gray-300 text-sm line-clamp-3 mb-4">
+          {tokenDescription}
+        </p>
 
         {/* Attributes Section */}
         <div className="mb-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {filteredProperties.map((attribute, index) => renderAttribute(attribute, index))}
+            {filteredProperties.map((attribute, index) =>
+              renderAttribute(attribute, index)
+            )}
           </div>
         </div>
 

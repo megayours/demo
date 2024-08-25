@@ -1,6 +1,9 @@
-const { exec } = require('child_process');
-const dotenv = require('dotenv');
-const { cwd } = require('process');
+/* global console, process */
+
+import { exec } from 'child_process';
+import dotenv from 'dotenv';
+import { cwd } from 'process';
+
 dotenv.config();
 
 // Configuration
@@ -17,9 +20,5 @@ exec(command, (err, stdout, stderr) => {
   }
 
   if (stderr) console.error('>> stdError:', '\n', stderr);
-  console.log(
-    '>> Container running with:',
-    '\n',
-    `  RESULT: ${stdout}`
-  );
+  console.log('>> Container running with:', '\n', `  RESULT: ${stdout}`);
 });
