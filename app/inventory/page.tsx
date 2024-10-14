@@ -259,7 +259,7 @@ function ImportNFT() {
 
   const playGame = (nft: NFT) => {
     router.push(
-      `/game?project=${nft.metadata.yours.project}&collection=${nft.metadata.yours.collection}&tokenId=${nft.token_id}`
+      `/game?project=${nft.metadata.yours.project.name}&collection=${nft.metadata.yours.collection}&tokenId=${nft.token_id}`
     );
   };
 

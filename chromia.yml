@@ -20,7 +20,7 @@ libs:
   yours:
     registry: git@github.com:megayours/yours-protocol.git
     path: src/lib/yours
-    tagOrBranch: main
+    tagOrBranch: demo
     rid: x"3733D90CC802F7AF71286CC01121765141C1DC5280E249899C5C7C392850DEE4"
     insecure: false
 
